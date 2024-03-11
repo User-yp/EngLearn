@@ -13,7 +13,6 @@ public static class DbContextOptionsBuilderFactory
     {
         var connStr = Environment.GetEnvironmentVariable("DefaultDB:ConnStr");
         var optionsBuilder = new DbContextOptionsBuilder<TDbContext>();
-        //optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=YouzackVNextDB;User ID=sa;Password=dLLikhQWy5TBz1uM;");
         optionsBuilder.UseSqlServer(connStr);
         return optionsBuilder;
     }

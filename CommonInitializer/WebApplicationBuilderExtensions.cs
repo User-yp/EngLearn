@@ -16,6 +16,7 @@ using Commons.JsonConverters;
 using Commons;
 using Infrastructure.EFCore;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 namespace CommonInitializer;
 
@@ -93,10 +94,7 @@ public static class WebApplicationBuilderExtensions
                .CreateLogger();
             builder.AddSerilog();
         });
-        services.AddFluentValidation(fv =>
-        {
-            fv.RegisterValidatorsFromAssemblies(assemblies);
-        });
+        services.AddValidatorsFromAssemblies(assemblies);
         services.Configure<JWTOptions>(configuration.GetSection("JWT"));
         services.Configure<IntegrationEventRabbitMQOptions>(configuration.GetSection("RabbitMQ"));
         services.AddEventBus(initOptions.EventBusQueueName, assemblies);

@@ -13,9 +13,12 @@ namespace FileService.Infrastructure;
 public class FSDbContext : BaseDbContext
 {
     public DbSet<UploadedItem> UploadItems { get; private set; }
+    public FSDbContext(DbContextOptions<FSDbContext> options) : base(options)
+    {
 
-    public FSDbContext(DbContextOptions<FSDbContext> options, IMediator mediator)
-        : base(options, mediator)
+    }
+
+    public FSDbContext(DbContextOptions<FSDbContext> options, IMediator mediator): base(options, mediator)
     {
     }
 

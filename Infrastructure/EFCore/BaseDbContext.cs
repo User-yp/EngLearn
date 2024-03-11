@@ -12,7 +12,10 @@ namespace Infrastructure.EFCore;
 public abstract class BaseDbContext : DbContext
 {
     private IMediator? mediator;
+    public BaseDbContext(DbContextOptions options) : base(options)
+    {
 
+    }
     public BaseDbContext(DbContextOptions options, IMediator? mediator) : base(options)
     {
         this.mediator = mediator;

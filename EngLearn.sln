@@ -23,13 +23,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonInitializer", "Common
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FileService", "FileService", "{F5B13C03-E742-4C6C-94B0-B3AD8F2D514D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Domain", "FileDomain\FileService.Domain.csproj", "{2715E94F-F2EB-4CC5-A88F-3809E5BF8686}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileService.Domain", "FileDomain\FileService.Domain.csproj", "{2715E94F-F2EB-4CC5-A88F-3809E5BF8686}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Infrastructure", "FileService.Infrastructure\FileService.Infrastructure.csproj", "{84994A30-06F6-4E72-83B8-EAC13940B3DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileService.Infrastructure", "FileService.Infrastructure\FileService.Infrastructure.csproj", "{84994A30-06F6-4E72-83B8-EAC13940B3DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.WebAPI", "FileService.WebAPI\FileService.WebAPI.csproj", "{1DDF272B-84CC-49E4-9213-9BB6AA68C793}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileService.WebAPI", "FileService.WebAPI\FileService.WebAPI.csproj", "{1DDF272B-84CC-49E4-9213-9BB6AA68C793}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.SDK.NETCore", "FileService.SDK.NETCore\FileService.SDK.NETCore.csproj", "{90313D6C-DFBC-4AFE-8B10-8611BF1CDD79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileService.SDK.NETCore", "FileService.SDK.NETCore\FileService.SDK.NETCore.csproj", "{90313D6C-DFBC-4AFE-8B10-8611BF1CDD79}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IdentityService", "IdentityService", "{28414C44-B8CF-44FE-8CA4-D7CFF863B31B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService.Domain", "IdentityService.Domain\IdentityService.Domain.csproj", "{B2B635E0-C78B-44BE-A203-0C7FFB36D3E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService.Infrastructure", "IdentityService.Infrastructure\IdentityService.Infrastructure.csproj", "{77F014CB-8F52-4B20-BAC0-F639A2AC201F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService.WebAPI", "IdentityService.WebAPI\IdentityService.WebAPI.csproj", "{2E24A190-6DE5-40A5-83B4-8711A45704F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +93,18 @@ Global
 		{90313D6C-DFBC-4AFE-8B10-8611BF1CDD79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90313D6C-DFBC-4AFE-8B10-8611BF1CDD79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90313D6C-DFBC-4AFE-8B10-8611BF1CDD79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2B635E0-C78B-44BE-A203-0C7FFB36D3E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2B635E0-C78B-44BE-A203-0C7FFB36D3E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2B635E0-C78B-44BE-A203-0C7FFB36D3E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2B635E0-C78B-44BE-A203-0C7FFB36D3E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77F014CB-8F52-4B20-BAC0-F639A2AC201F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77F014CB-8F52-4B20-BAC0-F639A2AC201F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77F014CB-8F52-4B20-BAC0-F639A2AC201F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77F014CB-8F52-4B20-BAC0-F639A2AC201F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E24A190-6DE5-40A5-83B4-8711A45704F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E24A190-6DE5-40A5-83B4-8711A45704F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E24A190-6DE5-40A5-83B4-8711A45704F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E24A190-6DE5-40A5-83B4-8711A45704F8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,6 +122,9 @@ Global
 		{84994A30-06F6-4E72-83B8-EAC13940B3DB} = {F5B13C03-E742-4C6C-94B0-B3AD8F2D514D}
 		{1DDF272B-84CC-49E4-9213-9BB6AA68C793} = {F5B13C03-E742-4C6C-94B0-B3AD8F2D514D}
 		{90313D6C-DFBC-4AFE-8B10-8611BF1CDD79} = {F5B13C03-E742-4C6C-94B0-B3AD8F2D514D}
+		{B2B635E0-C78B-44BE-A203-0C7FFB36D3E0} = {28414C44-B8CF-44FE-8CA4-D7CFF863B31B}
+		{77F014CB-8F52-4B20-BAC0-F639A2AC201F} = {28414C44-B8CF-44FE-8CA4-D7CFF863B31B}
+		{2E24A190-6DE5-40A5-83B4-8711A45704F8} = {28414C44-B8CF-44FE-8CA4-D7CFF863B31B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DC38929C-5559-4802-BDE5-C572AA7F173B}
