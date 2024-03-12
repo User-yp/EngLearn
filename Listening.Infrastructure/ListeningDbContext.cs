@@ -16,6 +16,10 @@ public class ListeningDbContext : BaseDbContext
     public DbSet<Album> Albums { get; private set; }
     public DbSet<Episode> Episodes { get; private set; }
 
+    public ListeningDbContext(DbContextOptions<ListeningDbContext> options):base(options)
+    {
+        
+    }
     public ListeningDbContext(DbContextOptions<ListeningDbContext> options, IMediator mediator) : base(options, mediator)
     {
     }
