@@ -1,8 +1,6 @@
 ﻿using Domain;
 using FluentValidation;
-using Commons.Validators;
 using Listening.Infrastructure;
-using Infrastructure.EFCore;
 using Listening.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 namespace Listening.Admin.WebAPI.Episodes.Request;

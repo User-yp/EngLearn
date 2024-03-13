@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Commons;
+﻿namespace Microsoft.Extensions.Logging;
 
 public static class LoggerExtensions
 {

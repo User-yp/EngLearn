@@ -1,8 +1,6 @@
 ﻿using Domain;
 using FluentValidation;
 using Listening.Infrastructure;
-using Commons.Validators;
-using Infrastructure.EFCore;
 using Listening.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 

@@ -17,8 +17,4 @@
     <ProjectReference Include="..\MediaEncoder.Infrastructure\MediaEncoder.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>

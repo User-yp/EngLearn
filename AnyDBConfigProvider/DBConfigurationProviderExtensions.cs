@@ -1,12 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
+﻿using AnyDBConfigProvider;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace AnyDBConfigProvider;
+namespace Microsoft.Extensions.Configuration;
 
 public static class DBConfigurationProviderExtensions
 {

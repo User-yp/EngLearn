@@ -1,10 +1,6 @@
 ﻿using FileService.Domain;
 using Microsoft.Extensions.Options;
 using Commons;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UpYun.NETCore;
 
 namespace FileService.Infrastructure.Services;

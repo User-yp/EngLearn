@@ -1,12 +1,6 @@
 ﻿using Listening.Domain.Entity;
 using Listening.Domain;
 using Microsoft.EntityFrameworkCore;
-using Infrastructure.EFCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Listening.Infrastructure;
 

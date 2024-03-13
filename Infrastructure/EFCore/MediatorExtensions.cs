@@ -1,15 +1,11 @@
 ﻿using Domain;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using MediatR;
+using Commons;
 
-namespace Infrastructure.EFCore;
+namespace MediatR;
 
 public static class MediatorExtensions
 {
@@ -21,8 +17,8 @@ public static class MediatorExtensions
     /// <returns></returns>
     public static IServiceCollection AddMediatR(this IServiceCollection services, IEnumerable<Assembly> assemblies)
     {
-        //return services.AddMediatR(assemblies);
-        return services.AddMediatR(assemblies.ToArray());
+        //return services.AddMediatR(assemblies.ToArray());
+        return services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assemblies.ToArray()));
     }
     public static async Task DispatchDomainEventsAsync(this IMediator mediator, DbContext ctx)
     {

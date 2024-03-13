@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Commons;
 using Jwt;
 

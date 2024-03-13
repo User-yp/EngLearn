@@ -1,11 +1,11 @@
-﻿using Commons.Validators;
-using Listening.Domain.Entity;
+﻿using Listening.Domain.Entity;
 using Listening.Domain;
 using Listening.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ASPNETCore;
 using Listening.Admin.WebAPI.Albums.Request;
+using System.ComponentModel.DataAnnotations;
 
 namespace Listening.Admin.WebAPI.Controller;
 

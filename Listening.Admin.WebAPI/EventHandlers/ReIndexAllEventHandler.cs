@@ -2,7 +2,6 @@
 using Listening.Domain.Entity;
 using Listening.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Infrastructure.EFCore;
 namespace Listening.Admin.WebAPI.EventHandlers;
 
 

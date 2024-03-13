@@ -1,13 +1,12 @@
-﻿using Commons.Validators;
-using Listening.Domain.Entity;
+﻿using Listening.Domain.Entity;
 using Listening.Domain;
 using Listening.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EventBus;
-using Commons;
 using ASPNETCore;
 using Listening.Admin.WebAPI.Episodes.Request;
+using System.ComponentModel.DataAnnotations;
 
 namespace Listening.Admin.WebAPI.Controller;
 

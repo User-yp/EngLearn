@@ -3,7 +3,6 @@ using IdentityService.Domain;
 using IdentityService.Infrastructure;
 using IdentityService.WebAPI.Events;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,7 +1,6 @@
 ﻿using IdentityService.Domain.Entity;
 using IdentityService.Domain;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Net;

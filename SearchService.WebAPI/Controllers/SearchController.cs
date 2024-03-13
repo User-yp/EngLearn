@@ -1,5 +1,4 @@
 ﻿using EventBus;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.Domain;
 using SearchService.WebAPI.Request;

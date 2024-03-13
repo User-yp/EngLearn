@@ -1,13 +1,7 @@
 ﻿using Domain;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Infrastructure.EFCore;
+namespace Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 public static class MultilingualStringEFCoreExtensions
 {

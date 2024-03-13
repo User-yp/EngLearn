@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using AnyDBConfigProvider;
 using Microsoft.Data.SqlClient;
 using EventBus;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +9,11 @@ using Jwt;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using ASPNETCore;
 using Serilog;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
 using Commons.JsonConverters;
 using Commons;
-using Infrastructure.EFCore;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
 using FluentValidation;
 
 namespace CommonInitializer;
@@ -31,9 +29,9 @@ public static class WebApplicationBuilderExtensions
             //string connStr = configRoot.GetValue<string>("DefaultDB:ConnStr");
             string connStr = builder.Configuration.GetValue<string>("DefaultDB:ConnStr");
             configBuilder.AddDbConfiguration(() => new SqlConnection(connStr), reloadOnChange: true, reloadInterval: TimeSpan.FromSeconds(5));
-
         });
     }
+
     public static void ConfigureExtraServices(this WebApplicationBuilder builder, InitializerOptions initOptions)
     {
         IServiceCollection services = builder.Services;

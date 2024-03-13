@@ -1,6 +1,5 @@
 ﻿using Domain;
 using FluentValidation;
-using Commons.Validators;
 
 namespace Listening.Admin.WebAPI.Categories.Request;
 

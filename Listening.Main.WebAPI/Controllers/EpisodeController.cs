@@ -1,9 +1,9 @@
 ﻿using ASPNETCore;
-using Commons.Validators;
 using Listening.Domain.Entity;
 using Listening.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Listening.Main.WebAPI.Controllers.Episodes.ViewModels;
+using System.ComponentModel.DataAnnotations;
 
 namespace Listening.Main.WebAPI.Controllers.Episodes;
 

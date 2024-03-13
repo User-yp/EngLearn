@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Listening.Domain.ValueObjects;
+﻿using Listening.Domain.ValueObjects;
 
 namespace Listening.Domain.Subtitles;
 
