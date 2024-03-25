@@ -14,7 +14,9 @@ public class RabbitMQConnection
     {
         _connectionFactory = connectionFactory;
     }
-
+    /// <summary>
+    /// 获取当前连接状态。
+    /// </summary>
     public bool IsConnected
     {
         get
@@ -22,7 +24,9 @@ public class RabbitMQConnection
             return _connection != null && _connection.IsOpen && !_disposed;
         }
     }
-
+    /// <summary>
+    /// 创建一个新的通道模型。
+    /// </summary>
     public IModel CreateModel()
     {
         if (!IsConnected)
@@ -32,14 +36,18 @@ public class RabbitMQConnection
 
         return _connection.CreateModel();
     }
-
+    /// <summary>
+    /// 释放资源。
+    /// </summary>
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
         _connection.Dispose();
     }
-
+    /// <summary>
+    /// 尝试连接到RabbitMQ服务器。
+    /// </summary>
     public bool TryConnect()
     {
         lock (sync_root)

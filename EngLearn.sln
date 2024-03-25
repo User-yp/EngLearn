@@ -51,19 +51,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listening.Main.WebAPI", "Li
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediaEncoderService", "MediaEncoderService", "{912875F2-D647-4F28-BCA8-5D4CB29627E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaEncoder.Domain", "MediaEncoder.Domain\MediaEncoder.Domain.csproj", "{2C62BC0A-2EB9-4449-825F-D3F444F1CF22}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaEncoder.Domain", "MediaEncoder.Domain\MediaEncoder.Domain.csproj", "{2C62BC0A-2EB9-4449-825F-D3F444F1CF22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaEncoder.Infrastructure", "MediaEncoder.Infrastructure\MediaEncoder.Infrastructure.csproj", "{4D42DA0A-5E87-4F49-B132-3AE2EF065A92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaEncoder.Infrastructure", "MediaEncoder.Infrastructure\MediaEncoder.Infrastructure.csproj", "{4D42DA0A-5E87-4F49-B132-3AE2EF065A92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaEncoder.WebAPI", "MediaEncoder.WebAPI\MediaEncoder.WebAPI.csproj", "{7FAF4FE6-0ECF-4C23-B61F-96C3903362B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediaEncoder.WebAPI", "MediaEncoder.WebAPI\MediaEncoder.WebAPI.csproj", "{7FAF4FE6-0ECF-4C23-B61F-96C3903362B8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SearchService", "SearchService", "{DE9A9CE9-BBDB-4BBD-9B13-AD1E6035BAE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SearchService.Domain", "SearchService.Domain\SearchService.Domain.csproj", "{55A8F3F1-7051-4FBB-9682-08D3075A3CD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SearchService.Domain", "SearchService.Domain\SearchService.Domain.csproj", "{55A8F3F1-7051-4FBB-9682-08D3075A3CD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SearchService.Infrastructure", "SearchService.Infrastructure\SearchService.Infrastructure.csproj", "{13064DEF-F35A-49AA-98C3-68C77CD90322}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SearchService.Infrastructure", "SearchService.Infrastructure\SearchService.Infrastructure.csproj", "{13064DEF-F35A-49AA-98C3-68C77CD90322}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SearchService.WebAPI", "SearchService.WebAPI\SearchService.WebAPI.csproj", "{7CB5A0F7-722A-4CD6-B063-462606748C5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SearchService.WebAPI", "SearchService.WebAPI\SearchService.WebAPI.csproj", "{7CB5A0F7-722A-4CD6-B063-462606748C5B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AliSDK", "AliSDK\AliSDK.csproj", "{07580883-BEFB-491D-A7AB-2B55A73934B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -171,6 +173,10 @@ Global
 		{7CB5A0F7-722A-4CD6-B063-462606748C5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CB5A0F7-722A-4CD6-B063-462606748C5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CB5A0F7-722A-4CD6-B063-462606748C5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07580883-BEFB-491D-A7AB-2B55A73934B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07580883-BEFB-491D-A7AB-2B55A73934B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07580883-BEFB-491D-A7AB-2B55A73934B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07580883-BEFB-491D-A7AB-2B55A73934B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -201,6 +207,7 @@ Global
 		{55A8F3F1-7051-4FBB-9682-08D3075A3CD0} = {DE9A9CE9-BBDB-4BBD-9B13-AD1E6035BAE8}
 		{13064DEF-F35A-49AA-98C3-68C77CD90322} = {DE9A9CE9-BBDB-4BBD-9B13-AD1E6035BAE8}
 		{7CB5A0F7-722A-4CD6-B063-462606748C5B} = {DE9A9CE9-BBDB-4BBD-9B13-AD1E6035BAE8}
+		{07580883-BEFB-491D-A7AB-2B55A73934B6} = {0FDF48C9-75BE-42BC-9F6D-DF148636F074}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DC38929C-5559-4802-BDE5-C572AA7F173B}

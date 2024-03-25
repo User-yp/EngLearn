@@ -1,6 +1,6 @@
 ﻿using IdentityService.Domain.Entity;
 
-namespace IdentityService.WebAPI.Controllers.UserAdmin;
+namespace IdentityService.WebAPI.Controllers;
 
 public record UserDTO(Guid Id, string UserName, string PhoneNumber, DateTime CreationTime)
 {

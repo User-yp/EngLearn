@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace IdentityService.WebAPI.Controllers.Login;
+namespace IdentityService.WebAPI.Request;
 
 public record LoginByUserNameAndPwdRequest(string UserName, string Password);
 public class LoginByUserNameAndPwdRequestValidator : AbstractValidator<LoginByUserNameAndPwdRequest>

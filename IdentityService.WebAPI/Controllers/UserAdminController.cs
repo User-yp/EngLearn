@@ -2,11 +2,12 @@
 using IdentityService.Domain;
 using IdentityService.Infrastructure;
 using IdentityService.WebAPI.Events;
+using IdentityService.WebAPI.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace IdentityService.WebAPI.Controllers.UserAdmin;
+namespace IdentityService.WebAPI.Controllers;
 
 [Route("[controller]/[action]")]
 [ApiController]

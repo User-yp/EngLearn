@@ -1,5 +1,6 @@
 ﻿using IdentityService.Domain;
 using Microsoft.Extensions.Logging;
+using AliSDK;
 
 namespace IdentityService.Infrastructure.Services;
 
@@ -10,10 +11,10 @@ public class MockSmsSender : ISmsSender
     {
         this.logger = logger;
     }
-    public Task SendAsync(string phoneNum, params string[] args)
+    public Task SendAsync(string phoneNum, string code)
     {
-        logger.LogInformation("Send Sms to {0},args:{1}", phoneNum,
-             string.Join(",", args));
+        SmsSender.UseSms(phoneNum, code);
+        logger.LogInformation($"向手机号{phoneNum}发送验证码：{code}");
         return Task.CompletedTask;
     }
 }

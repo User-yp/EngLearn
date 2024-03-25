@@ -20,7 +20,7 @@ public class SendCloudSmsSender : ISmsSender
         this.httpClientFactory = httpClientFactory;
         this.smsSettings = smsSettings;
     }
-    public async Task SendAsync(string phoneNum, params string[] args)
+    public async Task SendAsync(string phoneNum,string args)
     {
         logger.LogInformation("Send Sms to {0},args:{1}", phoneNum, string.Join("|", args));
         var postBody = new Dictionary<string, string>();

@@ -5,8 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity.Data;
+using Tea.Utils;
+using IdentityService.WebAPI.Request;
+using IdentityService.WebAPI.Response;
+using StackExchange.Redis;
 
-namespace IdentityService.WebAPI.Controllers.Login;
+namespace IdentityService.WebAPI.Controllers;
 
 [Route("[controller]/[action]")]
 [ApiController]
@@ -30,6 +35,7 @@ public class LoginController : ControllerBase
             return StatusCode((int)HttpStatusCode.Conflict, "已经初始化过了");
         }
         User user = new User("admin");
+        var ran = new Random();
         var r = await repository.CreateAsync(user, "123456");
         Debug.Assert(r.Succeeded);
         var token = await repository.GenerateChangePhoneNumberTokenAsync(user, "18918999999");
@@ -83,8 +89,7 @@ public class LoginController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost]
-    public async Task<ActionResult<string>> LoginByUserNameAndPwd(
-        LoginByUserNameAndPwdRequest req)
+    public async Task<ActionResult<string>> LoginByUserNameAndPwd(LoginByUserNameAndPwdRequest req)
     {
         (var checkResult, var token) = await idService.LoginByUserNameAndPwdAsync(req.UserName, req.Password);
         if (checkResult.Succeeded) return token!;
@@ -96,6 +101,12 @@ public class LoginController : ControllerBase
             return BadRequest("登录失败" + msg);
         }
     }
+    /*[AllowAnonymous]
+    [HttpPost]
+    public async Task<ActionResult<>> LoginByUserNameAndSmsCode(SendCodeByPhoneRequest req)
+    {
+
+    }*/
 
     [HttpPost]
     [Authorize]
@@ -111,5 +122,16 @@ public class LoginController : ControllerBase
         {
             return BadRequest(resetPwdResult.Errors.SumErrors());
         }
+    }
+    [HttpPost]
+    public async Task<ActionResult<ServiceResponse<bool>>> GetCode(SendCodeByPhoneRequest req)
+    {
+        ServiceResponse<bool> resp = new ServiceResponse<bool>();
+        var randomNumber = Convert.ToInt64(RandomExtensions.NextDouble(new Random(), 100000, 999999));
+
+        await idService.SendCodeAsync(req.PhoneNumber, randomNumber.ToSafeString());
+        resp.Data = true;
+        resp.Message = "发送成功";
+        return Ok(resp);
     }
 }

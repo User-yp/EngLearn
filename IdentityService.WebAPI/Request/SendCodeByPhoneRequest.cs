@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace IdentityService.WebAPI.Controllers.Login;
+namespace IdentityService.WebAPI.Request;
 
 public record SendCodeByPhoneRequest(string PhoneNumber);
 public class SendCodeByPhoneRequestValidator : AbstractValidator<SendCodeByPhoneRequest>

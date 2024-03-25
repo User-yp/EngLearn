@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace IdentityService.Infrastructure;
 
@@ -12,13 +13,14 @@ class IdRepository : IIdRepository
     private readonly IdUserManager userManager;
     private readonly RoleManager<Role> roleManager;
     private readonly ILogger<IdRepository> logger;
+    private readonly IDistributedCache distributedCache;
 
-
-    public IdRepository(IdUserManager userManager, RoleManager<Role> roleManager, ILogger<IdRepository> logger)
+    public IdRepository(IdUserManager userManager, RoleManager<Role> roleManager, ILogger<IdRepository> logger, IDistributedCache distributedCache)
     {
         this.userManager = userManager;
         this.roleManager = roleManager;
         this.logger = logger;
+        this.distributedCache = distributedCache;
     }
 
     public Task<User?> FindByPhoneNumberAsync(string phoneNum)
@@ -264,5 +266,15 @@ class IdRepository : IIdRepository
         if (uppercase)
             password.Append((char)random.Next(65, 91));
         return password.ToString();
+    }
+
+    public Task SavePhoneNumberCodeAsync(string phoneNum, string code)
+    {
+        string key = $"PhoneNumberCode_{phoneNum}";
+
+        return distributedCache.SetStringAsync(key, code, new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+        });
     }
 }

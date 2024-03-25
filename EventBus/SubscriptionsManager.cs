@@ -28,7 +28,11 @@ public class SubscriptionsManager
         }
         _handlers[eventName].Add(eventHandlerType);
     }
-
+    /// <summary>
+    /// 移除对eventName事件的eventHandlerType类型的订阅关系。
+    /// </summary>
+    /// <param name="eventName">事件名称</param>
+    /// <param name="handlerType">事件处理程序类型</param>
     public void RemoveSubscription(string eventName, Type handlerType)
     {
         _handlers[eventName].Remove(handlerType);

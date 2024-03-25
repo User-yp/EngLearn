@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AliSDK\AliSDK.csproj" />
     <ProjectReference Include="..\CommonInitializer\CommonInitializer.csproj" />
     <ProjectReference Include="..\Commons\Commons.csproj" />
     <ProjectReference Include="..\IdentityService.Domain\IdentityService.Domain.csproj" />

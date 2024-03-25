@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace IdentityService.WebAPI.Controllers.UserAdmin;
+namespace IdentityService.WebAPI.Request;
 
 public record AddAdminUserRequest(string UserName, string PhoneNum);
 public class AddAdminUserRequestValidator : AbstractValidator<AddAdminUserRequest>

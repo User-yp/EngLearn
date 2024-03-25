@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace IdentityService.WebAPI.Controllers.Login;
+namespace IdentityService.WebAPI.Request;
 
 public record ChangeMyPasswordRequest(string Password, string Password2);
 public class ChangePasswordRequestValidator : AbstractValidator<ChangeMyPasswordRequest>

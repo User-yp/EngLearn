@@ -15,6 +15,9 @@ using Commons;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 using FluentValidation;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace CommonInitializer;
 
@@ -104,6 +107,13 @@ public static class WebApplicationBuilderExtensions
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.All;
+        });
+
+        services.AddRedisHelper(redisOption =>
+        {
+            //redisOption.ConnectionString ="127.0.0.1:6379";
+            redisOption.ConnectionString = configuration.GetValue<string>("Redis:ConnStr");
+            redisOption.DbNumber = 0;
         });
     }
 }

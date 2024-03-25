@@ -11,5 +11,7 @@ class ModuleInitializer : IModuleInitializer
         services.AddDistributedMemoryCache();
         services.AddScoped<IMemoryCacheHelper, MemoryCacheHelper>();
         services.AddScoped<IDistributedCacheHelper, DistributedCacheHelper>();
+        services.AddSingleton<IRedisHelper, RedisHelper>();
+        //services.AddRedisHelper();
     }
 }

@@ -91,4 +91,11 @@ public interface IIdRepository
     /// <param name="id"></param>
     /// <returns>返回值第三个是生成的密码</returns>
     public Task<(IdentityResult, User?, string? password)> ResetPasswordAsync(Guid id);
+    /// <summary>
+    /// 保存用户验证码
+    /// </summary>
+    /// <param name="phone"></param>
+    /// <param name="code"></param>
+    /// <returns></returns>
+    public Task SavePhoneNumberCodeAsync(string phoneNum, string code);
 }

@@ -42,6 +42,7 @@ public record Album : AggregateRootEntity, IAggregateRoot
     {
         this.SequenceNumber = value;
         return this;
+        
     }
 
     public Album ChangeName(MultilingualString value)

@@ -33,6 +33,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
         this._consumerChannel = CreateConsumerChannel();
         this._subsManager.OnEventRemoved += SubsManager_OnEventRemoved; ;
     }
+    /// <summary>
+    /// 订阅移除的事件处理程序。
+    /// </summary>
     private void SubsManager_OnEventRemoved(object? sender, string eventName)
     {
         if (!_persistentConnection.IsConnected)
@@ -53,6 +56,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
             }
         }
     }
+    /// <summary>
+    /// 释放RabbitMQEventBus使用的资源。
+    /// </summary>
     public void Dispose()
     {
         if (_consumerChannel != null)
@@ -63,7 +69,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
         this._persistentConnection.Dispose();
         this.serviceScope.Dispose();
     }
-
+    /// <summary>
+    /// 将事件发布到消息代理。
+    /// </summary>
     public void Publish(string eventName, object? eventData)
     {
         if (!_persistentConnection.IsConnected)
@@ -80,7 +88,7 @@ public class RabbitMQEventBus : IEventBus, IDisposable
             byte[] body;
             if (eventData == null)
             {
-                body = new byte[0];
+                body = [];
             }
             else
             {
@@ -101,7 +109,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
                 body: body);
         }
     }
-
+    /// <summary>
+    /// 使用指定的处理程序类型订阅事件。
+    /// </summary>
     public void Subscribe(string eventName, Type handlerType)
     {
         CheckHandlerType(handlerType);
@@ -109,6 +119,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
         _subsManager.AddSubscription(eventName, handlerType);
         StartBasicConsume();
     }
+    /// <summary>
+    /// 开始用于接收消息的基本消费操作。
+    /// </summary>
     private void StartBasicConsume()
     {
         if (_consumerChannel != null)
@@ -121,6 +134,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
                 consumer: consumer);
         }
     }
+    /// <summary>
+    /// 处理订阅逻辑的内部方法。
+    /// </summary>
     private void DoInternalSubscription(string eventName)
     {
         var containsKey = _subsManager.HasSubscriptionsForEvent(eventName);
@@ -135,7 +151,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
                                 routingKey: eventName);
         }
     }
-
+    /// <summary>
+    /// 检查提供的处理程序类型是否有效。
+    /// </summary>
     private void CheckHandlerType(Type handlerType)
     {
         if (!typeof(IIntegrationEventHandler).IsAssignableFrom(handlerType))
@@ -143,12 +161,17 @@ public class RabbitMQEventBus : IEventBus, IDisposable
             throw new ArgumentException($"{handlerType} doesn't inherit from IIntegrationEventHandler", nameof(handlerType));
         }
     }
-
+    /// <summary>
+    /// 使用指定的处理程序类型取消订阅事件。
+    /// </summary>
     public void Unsubscribe(string eventName, Type handlerType)
     {
         CheckHandlerType(handlerType);
         _subsManager.RemoveSubscription(eventName, handlerType);
     }
+    /// <summary>
+    /// 处理接收到的消息的事件处理程序。
+    /// </summary>
     private async Task Consumer_Received(object sender, BasicDeliverEventArgs eventArgs)
     {
         var eventName = eventArgs.RoutingKey;//这个框架中，就是用eventName当RoutingKey
@@ -169,7 +192,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
             Debug.Fail(ex.ToString());
         }
     }
-
+    /// <summary>
+    /// 创建用于消息消费的新消费者通道。
+    /// </summary>
     private IModel CreateConsumerChannel()
     {
         if (!_persistentConnection.IsConnected)
@@ -198,7 +223,9 @@ public class RabbitMQEventBus : IEventBus, IDisposable
 
         return channel;
     }
-
+    /// <summary>
+    /// 通过调用适当的事件处理程序处理事件。
+    /// </summary>
     private async Task ProcessEvent(string eventName, string message)
     {
         if (_subsManager.HasSubscriptionsForEvent(eventName))

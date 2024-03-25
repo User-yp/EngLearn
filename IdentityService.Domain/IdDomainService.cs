@@ -1,4 +1,5 @@
-﻿using IdentityService.Domain.Entity;
+﻿using ASPNETCore;
+using IdentityService.Domain.Entity;
 using Jwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -11,13 +12,16 @@ public class IdDomainService
     private readonly IIdRepository repository;
     private readonly ITokenService tokenService;
     private readonly IOptions<JWTOptions> optJWT;
+    private readonly ISmsSender smsSender;
+    private readonly IRedisHelper redisHelper;
 
-    public IdDomainService(IIdRepository repository,
-         ITokenService tokenService, IOptions<JWTOptions> optJWT)
+    public IdDomainService(IIdRepository repository,ITokenService tokenService, IOptions<JWTOptions> optJWT,ISmsSender smsSender,IRedisHelper redisHelper)
     {
         this.repository = repository;
         this.tokenService = tokenService;
         this.optJWT = optJWT;
+        this.smsSender = smsSender;
+        this.redisHelper = redisHelper;
     }
 
     private async Task<SignInResult> CheckUserNameAndPwdAsync(string userName, string password)
@@ -76,12 +80,17 @@ public class IdDomainService
     private async Task<string> BuildTokenAsync(User user)
     {
         var roles = await repository.GetRolesAsync(user);
-        List<Claim> claims = new List<Claim>();
-        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+        List<Claim> claims = [new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())];
         foreach (string role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
         return tokenService.BuildToken(claims, optJWT.Value);
+    }
+    public async Task SendCodeAsync(string phoneNum, string code)
+    {
+        await smsSender.SendAsync(phoneNum, code);
+        await redisHelper.StringSetAsync(phoneNum, code, TimeSpan.FromSeconds(300)); 
+        //await repository.SavePhoneNumberCodeAsync(phoneNum, code);
     }
 }
