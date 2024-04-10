@@ -18,6 +18,8 @@ using FluentValidation;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
+using ASPNETCore.RedisService;
+using FluentValidation.AspNetCore;
 
 namespace CommonInitializer;
 
@@ -95,7 +97,10 @@ public static class WebApplicationBuilderExtensions
                .CreateLogger();
             builder.AddSerilog();
         });
-        services.AddValidatorsFromAssemblies(assemblies);
+        services.AddFluentValidation(fv =>
+        {
+            fv.RegisterValidatorsFromAssemblies(assemblies);
+        });
         services.Configure<JWTOptions>(configuration.GetSection("JWT"));
         services.Configure<IntegrationEventRabbitMQOptions>(configuration.GetSection("RabbitMQ"));
         services.AddEventBus(initOptions.EventBusQueueName, assemblies);

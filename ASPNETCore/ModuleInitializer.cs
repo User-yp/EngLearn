@@ -1,4 +1,5 @@
-﻿using Commons;
+﻿using ASPNETCore.RedisService;
+using Commons;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ASPNETCore;
@@ -12,6 +13,5 @@ class ModuleInitializer : IModuleInitializer
         services.AddScoped<IMemoryCacheHelper, MemoryCacheHelper>();
         services.AddScoped<IDistributedCacheHelper, DistributedCacheHelper>();
         services.AddSingleton<IRedisHelper, RedisHelper>();
-        //services.AddRedisHelper();
     }
 }

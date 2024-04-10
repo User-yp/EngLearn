@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.ConfigureDbConfiguration();
 builder.ConfigureExtraServices(new InitializerOptions
 {
-    LogFilePath = "E:/csData/FileService.log",
+    LogFilePath = "E:/EngLearn.Log/FileService.log",
     EventBusQueueName = "FileService.WebAPI",
 });
 

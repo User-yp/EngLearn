@@ -10,13 +10,16 @@ public class User : IdentityUser<Guid>, IHasCreationTime, IHasDeletionTime, ISof
     public DateTime? DeletionTime { get; private set; }
 
     public bool IsDeleted { get; private set; }
-
+    public User() : base()
+    {
+        Id = Guid.NewGuid();
+        CreationTime = DateTime.Now;
+    }
     public User(string userName) : base(userName)
     {
         Id = Guid.NewGuid();
         CreationTime = DateTime.Now;
     }
-
     public void SoftDelete()
     {
         this.IsDeleted = true;

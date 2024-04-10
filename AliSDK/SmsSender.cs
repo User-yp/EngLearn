@@ -18,13 +18,15 @@ public static class SmsSender
     }
     public static void UseSms(string phone, string token)
     {
-        var client = CreateClient(accessKeyId: $@"your accessKeyId", accessKeySecret: $@"your accessKeySecret");
+        string? accessKeyId = Environment.GetEnvironmentVariable("accessKeyId");
+        string? accessKeySecret= Environment.GetEnvironmentVariable("accessKeySecret");
+        var client = CreateClient( accessKeyId, accessKeySecret);
 
         SendSmsRequest sendSmsRequest = new SendSmsRequest()
         {
             PhoneNumbers = phone,
-            SignName = "your SignName",
-            TemplateCode = "your TemplateCode",
+            SignName = "亚普网",
+            TemplateCode = "SMS_465413181",
             TemplateParam = $"{{\"code\":\"{token}\"}}"
         };
 

@@ -12,7 +12,7 @@ builder.ConfigureDbConfiguration();
 builder.ConfigureExtraServices(new InitializerOptions
 {
     EventBusQueueName = "IdentityService.WebAPI",
-    LogFilePath = "e:/temp/IdentityService.log"
+    LogFilePath = "e:/EngLearn.Log/IdentityService.log"
 });
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(c =>
@@ -21,6 +21,7 @@ builder.Services.AddSwaggerGen(c =>
     //c.AddAuthenticationHeader();
 });
 
+//builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddDataProtection();
 //登录、注册的项目除了要启用WebApplicationBuilderExtensions中的初始化之外，还要如下的初始化
 //不要用AddIdentity，而是用AddIdentityCore
@@ -33,6 +34,7 @@ IdentityBuilder idBuilder = builder.Services.AddIdentityCore<User>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
+    options.User.AllowedUserNameCharacters = null;
     //不能设定RequireUniqueEmail，否则不允许邮箱为空
     //options.User.RequireUniqueEmail = true;
     //以下两行，把GenerateEmailConfirmationTokenAsync验证码缩短
@@ -49,7 +51,7 @@ idBuilder.AddEntityFrameworkStores<IdDbContext>().AddDefaultTokenProviders()
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddScoped<IEmailSender, MockEmailSender>();
-    builder.Services.AddScoped<ISmsSender, MockSmsSender>();
+    builder.Services.AddScoped<ISmsSender, SmsSender>();
 }
 else
 {

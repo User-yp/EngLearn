@@ -3,7 +3,7 @@
 public class SubscriptionsManager
 {
     //key是eventName，值是监听这个事件的实现了IIntegrationEventHandler接口的类型
-    private readonly Dictionary<string, List<Type>> _handlers = new Dictionary<string, List<Type>>();
+    private readonly Dictionary<string, List<Type>> _handlers = [];
 
     public event EventHandler<string> OnEventRemoved;
 

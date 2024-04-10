@@ -14,7 +14,7 @@ public static class SwaggerGenOptionsExtensions
     {
         c.AddSecurityDefinition("Authorization", new OpenApiSecurityScheme
         {
-            Description = "Authorization header. \r\nExample: 'Bearer 12345abcdef'",
+            Description = "Authorization header. \r\nExample: 'Bearer yourJwtCode'",
             Name = "Authorization",
             In = ParameterLocation.Header,
             Type = SecuritySchemeType.ApiKey,

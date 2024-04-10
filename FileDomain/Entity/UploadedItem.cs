@@ -35,7 +35,7 @@ public record UploadedItem : BaseEntity, IHasCreationTime
 
     public static UploadedItem Create(Guid id, long fileSizeInBytes, string fileName, string fileSHA256Hash, Uri backupUrl, Uri remoteUrl)
     {
-        UploadedItem item = new UploadedItem()
+        UploadedItem item = new()
         {
             Id = id,
             CreationTime = DateTime.Now,

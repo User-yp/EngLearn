@@ -3,6 +3,7 @@ using IdentityService.Domain;
 using IdentityService.Infrastructure;
 using IdentityService.WebAPI.Events;
 using IdentityService.WebAPI.Request;
+using IdentityService.WebAPI.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,45 @@ public class UserAdminController : ControllerBase
     {
         return userManager.Users.Select(u => UserDTO.Create(u)).ToArrayAsync();
     }
+    [HttpPost]
+    [AllowAnonymous]
+    public ActionResult< List<FindUsersBySearchResponse>> FindUsersBySearch(FindUsersBySearchRequest req)
+    {
+        var userList= repository.FindBySearchNameAsync(req.UserName);
+        if (userList == null)
+            return BadRequest("no user");
+        var res = new List<FindUsersBySearchResponse>();
+        foreach (var itme in userList)
+        {
+            var user = new FindUsersBySearchResponse(itme.UserName, itme.CreationTime, itme.PhoneNumber);
+            res.Add(user);
+        }
+        return Ok(res);
+    }
+    [HttpGet]
+    [AllowAnonymous]
+    public ActionResult<List<FindUsersBySearchResponse>> FindAllLockedUsers()
+    {
+        var userList = repository.FindAllLockedUsers();
+        if (userList == null)
+            return BadRequest("no user");
+        var res = new List<FindUsersBySearchResponse>();
+        foreach (var itme in userList)
+        {
+            var user = new FindUsersBySearchResponse(itme.UserName, itme.CreationTime, itme.PhoneNumber);
+            res.Add(user);
+        }
+        return Ok(res);
+    }
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<ActionResult> ResetLockedUserByName(FindUsersBySearchRequest req)
+    {
+        (var res,var resbool) =await repository.ResetLockedUserByName(req.UserName);
+        if (resbool)
+            return Ok(res);
+        return BadRequest("error");
+    }
 
     [HttpGet]
     [Route("{id}")]
@@ -49,9 +89,6 @@ public class UserAdminController : ControllerBase
         {
             return BadRequest(result.Errors.SumErrors());
         }
-        //生成的密码短信发给对方
-        //可以同时或者选择性的把新增用户的密码短信/邮件/打印给用户
-        //体现了领域事件对于代码“高内聚、低耦合”的追求
         var userCreatedEvent = new UserCreatedEvent(user.Id, req.UserName, password, req.PhoneNum);
         eventBus.Publish("IdentityService.User.Created", userCreatedEvent);
         return Ok();
@@ -64,7 +101,20 @@ public class UserAdminController : ControllerBase
         await repository.RemoveUserAsync(id);
         return Ok();
     }
-
+    [HttpDelete]
+    [Route("{userName}")]
+    public async Task<ActionResult> DeleteUser(string userName)
+    {
+        var res= await repository.RemoveUserByNameAsync(userName);
+        return Ok(res);
+    }
+    [HttpPut]
+    [AllowAnonymous]
+    public async Task<ActionResult> ModifyUserInforById(ModifyUserInforByIdRequset req)
+    {
+        var res= await repository.ModifyUserInforByIdAsync(req.UserId, req.UserName, req.PhoneNumber, req.Password);
+        return Ok(res);
+    }
     [HttpPut]
     [Route("{id}")]
     public async Task<ActionResult> UpdateAdminUser(Guid id, EditAdminUserRequest req)

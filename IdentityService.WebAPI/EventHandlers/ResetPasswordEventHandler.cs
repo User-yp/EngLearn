@@ -17,6 +17,7 @@ public class ResetPasswordEventHandler : JsonIntegrationEventHandler<ResetPasswo
 
     public override Task HandleJson(string eventName, ResetPasswordEvent? eventData)
     {
+        logger.LogInformation($"{eventData.UserName} ResetPassword {eventData.Password}");
         //发送密码给被用户的手机
         return smsSender.SendAsync(eventData.PhoneNum, eventData.Password);
     }

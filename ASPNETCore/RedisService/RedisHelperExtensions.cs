@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ASPNETCore;
+namespace ASPNETCore.RedisService;
 
 public static class RedisHelperExtensions
 {

@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Net;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity.Data;
 using Tea.Utils;
 using IdentityService.WebAPI.Request;
 using IdentityService.WebAPI.Response;
-using StackExchange.Redis;
+using EventBus;
+using IdentityService.WebAPI.Events;
+using ASPNETCore.RedisService;
 
 namespace IdentityService.WebAPI.Controllers;
 
@@ -18,61 +19,59 @@ namespace IdentityService.WebAPI.Controllers;
 public class LoginController : ControllerBase
 {
     private readonly IIdRepository repository;
+    private readonly IEventBus eventBus;
+    private readonly IRedisHelper redis;
     private readonly IdDomainService idService;
 
-    public LoginController(IdDomainService idService, IIdRepository repository)
+    public LoginController(IdDomainService idService, IIdRepository repository,IEventBus eventBus,IRedisHelper redis)
     {
         this.idService = idService;
         this.repository = repository;
+        this.eventBus = eventBus;
+        this.redis = redis;
     }
+
 
     [HttpPost]
     [AllowAnonymous]
-    public async Task<ActionResult> CreateWorld()
+    public async Task<ActionResult> SignUpByPhoneAndPwd(SignUpByPhoneAndPwdRequset req)
     {
-        if (await repository.FindByNameAsync("admin") != null)
-        {
-            return StatusCode((int)HttpStatusCode.Conflict, "已经初始化过了");
-        }
-        User user = new User("admin");
-        var ran = new Random();
-        var r = await repository.CreateAsync(user, "123456");
-        Debug.Assert(r.Succeeded);
-        var token = await repository.GenerateChangePhoneNumberTokenAsync(user, "18918999999");
-        var cr = await repository.ChangePhoneNumAsync(user.Id, "18918999999", token);
-        Debug.Assert(cr.Succeeded);
-        r = await repository.AddToRoleAsync(user, "User");
-        Debug.Assert(r.Succeeded);
-        r = await repository.AddToRoleAsync(user, "Admin");
-        Debug.Assert(r.Succeeded);
-        return Ok();
+        (var verify, var verifyRes) = await repository.VerifySmsCodeAsync(req.PhoneNumber, req.Smscode);
+        if (!verify)
+            return BadRequest(verifyRes.Data);
+        (var res,var user) =await repository.AddUserAsync(req.UserName, req.PhoneNumber, req.Password);
+        
+        if (!res.Succeeded)
+            return BadRequest(res.Errors.SumErrors());
+        
+        await LoginByPhoneAndSmsCodeAsync(new LoginByPhoneAndSmsCodeRequest(req.PhoneNumber, req.Smscode));
+        eventBus.Publish("IdentityService.User.SmsCodeSignUp", new UserSmsCodeSignUpEvent(user,req.PhoneNumber, req.Smscode));
+        return Ok($"{verifyRes.Data}，注册成功！");
     }
 
     [HttpGet]
     [Authorize]
     public async Task<ActionResult<UserResponse>> GetUserInfo()
     {
-        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var user = await repository.FindByIdAsync(Guid.Parse(userId));
         if (user == null)//可能用户注销了
-        {
             return NotFound();
-        }
         //出于安全考虑，不要机密信息传递到客户端
         //除非确认没问题，否则尽量不要直接把实体类对象返回给前端
         return new UserResponse(user.Id, user.PhoneNumber, user.CreationTime);
     }
-
-    //书中的项目只提供根据用户名登录的功能，以及管理员增删改查，像用户主动注册、手机验证码登录等功能都不弄。
 
     [AllowAnonymous]
     [HttpPost]
     public async Task<ActionResult<string?>> LoginByPhoneAndPwd(LoginByPhoneAndPwdRequest req)
     {
         //todo：要通过行为验证码、图形验证码等形式来防止暴力破解
-        (var checkResult, string? token) = await idService.LoginByPhoneAndPwdAsync(req.PhoneNum, req.Password);
+        (var checkResult, string? token,var jwtCheckRes) = await idService.LoginByPhoneAndPwdAsync(req.PhoneNum, req.Password);
         if (checkResult.Succeeded)
         {
+            if(!jwtCheckRes)
+                eventBus.Publish("IdentityService.CheckJwt", new CheckJwtEvent(await repository.FindByPhoneNumberAsync(req.PhoneNum)));
             return token;
         }
         else if (checkResult.IsLockedOut)
@@ -91,8 +90,13 @@ public class LoginController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<string>> LoginByUserNameAndPwd(LoginByUserNameAndPwdRequest req)
     {
-        (var checkResult, var token) = await idService.LoginByUserNameAndPwdAsync(req.UserName, req.Password);
-        if (checkResult.Succeeded) return token!;
+        (var checkResult, var token, var jwtCheckRes) = await idService.LoginByUserNameAndPwdAsync(req.UserName, req.Password);
+        if (checkResult.Succeeded)
+        {
+            if (!jwtCheckRes)
+                eventBus.Publish("IdentityService.CheckJwt", new CheckJwtEvent(await repository.FindByNameAsync(req.UserName)));
+            return token!;
+        }
         else if (checkResult.IsLockedOut)//尝试登录次数太多
             return StatusCode((int)HttpStatusCode.Locked, "用户已经被锁定");
         else
@@ -101,37 +105,70 @@ public class LoginController : ControllerBase
             return BadRequest("登录失败" + msg);
         }
     }
-    /*[AllowAnonymous]
-    [HttpPost]
-    public async Task<ActionResult<>> LoginByUserNameAndSmsCode(SendCodeByPhoneRequest req)
-    {
 
-    }*/
+    [HttpPost]
+    [AllowAnonymous]
+    public async Task<ActionResult<string>> LoginByPhoneAndSmsCodeAsync(LoginByPhoneAndSmsCodeRequest req)
+    {
+        (var checkResult, var token,var jwtCheckRes) = await idService.LoginByPhoneAndSmsCodeAsync(req.PhoneNum, req.SmsCode);
+        
+        if (checkResult.Succeeded)
+        {
+            if (!jwtCheckRes)
+                eventBus.Publish("IdentityService.CheckJwt", new CheckJwtEvent(await repository.FindByPhoneNumberAsync(req.PhoneNum)));
+            await redis.KeyDeleteAsync(req.PhoneNum);
+            return token!;
+        }
+        else if (checkResult.IsLockedOut)//尝试登录次数太多
+            return StatusCode((int)HttpStatusCode.Locked, "用户已经被锁定");
+        else
+        {
+            string msg = checkResult.ToString();
+            return BadRequest("登录失败" + msg);
+        }
+    }
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult> ChangeMyPassword(ChangeMyPasswordRequest req)
+    public async Task<ActionResult> ChangeUserPassword(ChangePasswordRequest req)
     {
         Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var resetPwdResult = await repository.ChangePasswordAsync(userId, req.Password);
-        if (resetPwdResult.Succeeded)
-        {
-            return Ok();
-        }
+        var res = await repository.ChangePasswordAsync(userId, req.Password,req.NewPassword);
+        if (res.Succeeded)
+            return Ok(res);
         else
-        {
-            return BadRequest(resetPwdResult.Errors.SumErrors());
-        }
+            return BadRequest(res.Errors.SumErrors());
     }
     [HttpPost]
-    public async Task<ActionResult<ServiceResponse<bool>>> GetCode(SendCodeByPhoneRequest req)
+    [Authorize]
+    public async Task<ActionResult> RetrievePassword(RetrievePasswordRequest req)
     {
-        ServiceResponse<bool> resp = new ServiceResponse<bool>();
-        var randomNumber = Convert.ToInt64(RandomExtensions.NextDouble(new Random(), 100000, 999999));
+        Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var res= await repository.RetrievePasswordAsync(userId, req.Password,req.SmsCode);
+        if(res.Succeeded)
+            return Ok(res);
+        else
+            return BadRequest(res.Errors.SumErrors());
+
+    }
+
+    [HttpPut]
+    [Authorize]
+    public async Task<ActionResult> UserModifyInfor(UserModifyInforRequset req)
+    {
+        Guid userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var res = await repository.UserModifyInforByIdAsync(userId, req.UserName, req.PhoneNumber, req.PasswordRequest.Password, req.PasswordRequest.NewPassword);
+        return Ok(res);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<UserGetCodeResponse>> GetCode(SendCodeByPhoneRequest req)
+    {
+        var randomNumber = Convert.ToInt32(RandomExtensions.NextDouble(new Random(), 100000, 999999));
 
         await idService.SendCodeAsync(req.PhoneNumber, randomNumber.ToSafeString());
-        resp.Data = true;
-        resp.Message = "发送成功";
+        var resp = new UserGetCodeResponse(req.PhoneNumber, randomNumber,DateTime.Now);
+        eventBus.Publish("IdentityService.GetCode", new UserGetCodeEvent(req.PhoneNumber, randomNumber));
         return Ok(resp);
     }
 }

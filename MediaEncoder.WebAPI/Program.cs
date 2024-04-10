@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.ConfigureDbConfiguration();
 builder.ConfigureExtraServices(new InitializerOptions
 {
-    LogFilePath = "e:/temp/MediaEncoder.log",
+    LogFilePath = "e:/EngLearn.Log/MediaEncoder.log",
     EventBusQueueName = "MediaEncoder.WebAPI"
 });
 builder.Services.Configure<FileServiceOptions>(builder.Configuration.GetSection("FileService:Endpoint"));

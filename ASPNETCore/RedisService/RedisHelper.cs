@@ -6,9 +6,9 @@ using System.Net;
 using Timer = System.Timers.Timer;
 
 
-namespace ASPNETCore;
+namespace ASPNETCore.RedisService;
 
-public class RedisHelper:IRedisHelper
+public class RedisHelper : IRedisHelper
 {
     private readonly ConnectionMultiplexer _conn;
     private readonly IDatabase _db;
@@ -29,13 +29,15 @@ public class RedisHelper:IRedisHelper
 
     #region String
 
+    public async Task<bool> StringSetAsync<T>(string key, T value) =>
+        await _db.StringSetAsync(key, value.ToRedisValue());
+
     public async Task<bool> StringSetAsync<T>(string key, T value, TimeSpan timeSpan) =>
         await _db.StringSetAsync(key, value.ToRedisValue(), timeSpan);
 
     public async Task<T> StringGetAsync<T>(string key)
         //where T : class 
-        =>
-            (await _db.StringGetAsync(key)).ToObject<T>();
+        =>(await _db.StringGetAsync(key)).ToObject<T>();
 
     public async Task<double> StringIncrementAsync(string key, int value = 1) =>
         await _db.StringIncrementAsync(key, value);
@@ -50,6 +52,13 @@ public class RedisHelper:IRedisHelper
     public async Task<long> EnqueueAsync<T>(string key, T value) =>
         await _db.ListRightPushAsync(key, value.ToRedisValue());
 
+    public async Task<long> EnqueueorCreateAsync<T>(string key, T value)
+    {
+        if (!await KeyExistsAsync(key))
+            return await EnqueueAsync(key, value);
+        else
+            return await _db.ListRightPushAsync(key, value.ToRedisValue());
+    }
     public async Task<T> DequeueAsync<T>(string key) where T : class =>
         (await _db.ListLeftPopAsync(key)).ToObject<T>();
 
@@ -75,7 +84,7 @@ public class RedisHelper:IRedisHelper
 
     #endregion
 
-    #region Sortedset
+    #region ZSet
 
     public async Task<bool> SortedSetAddAsync(string key, string member, double score) =>
         await _db.SortedSetAddAsync(key, member, score);
@@ -108,8 +117,7 @@ public class RedisHelper:IRedisHelper
     public async Task<ConcurrentDictionary<string, string>> HashGetAsync(string key) =>
         (await _db.HashGetAllAsync(key)).ToConcurrentDictionary();
 
-    public async Task<ConcurrentDictionary<string, string>> HashGetFieldsAsync(string key,
-        IEnumerable<string> fields) =>
+    public async Task<ConcurrentDictionary<string, string>> HashGetFieldsAsync(string key,IEnumerable<string> fields) =>
         (await _db.HashGetAsync(key, fields.ToRedisValues())).ToConcurrentDictionary(fields);
 
     public async Task HashSetAsync(string key, ConcurrentDictionary<string, string> entries)
@@ -119,9 +127,17 @@ public class RedisHelper:IRedisHelper
             await _db.HashSetAsync(key, val);
     }
 
+    public async Task HashSetAsync(string key, ConcurrentDictionary<string, string> entries, TimeSpan timeSpan)
+    {
+        var val = entries.ToHashEntries();
+        if (val != null)
+            await _db.HashSetAsync(key, val);
+            await _db.KeyExpireAsync(key, timeSpan);
+    }
+
     public async Task HashSetFieldsAsync(string key, ConcurrentDictionary<string, string> fields)
     {
-        if (fields == null || !fields.Any())
+        if (fields == null || fields.IsEmpty)
             return;
 
         var hs = await HashGetAsync(key);
@@ -137,6 +153,80 @@ public class RedisHelper:IRedisHelper
         await HashSetAsync(key, hs);
     }
 
+    public async Task HashSetFieldsAsync(string key, ConcurrentDictionary<string, string> fields,TimeSpan timeSpan)
+    {
+        if (fields == null || fields.IsEmpty)
+            return;
+
+        var hs = await HashGetAsync(key);
+        foreach (var field in fields)
+        {
+            //if(!hs.ContainsKey(field.Key))
+
+            //    continue;
+
+            hs[field.Key] = field.Value;
+        }
+        await HashSetAsync(key, hs);
+        await _db.KeyExpireAsync(key, timeSpan);
+    }
+
+    public async Task HashSetorCreateFieldsAsync(string key, ConcurrentDictionary<string, string> fields)
+    {
+        if (!await KeyExistsAsync(key))
+            await HashSetAsync(key, fields);
+        else
+        {
+            if (fields == null || fields.IsEmpty)
+                return;
+
+            var hs = await HashGetAsync(key);
+            foreach (var field in fields)
+            {
+                //if(!hs.ContainsKey(field.Key))
+
+                //    continue;
+
+                hs[field.Key] = field.Value;
+            }
+            await HashSetAsync(key, hs);
+        }
+    }
+
+    public async Task HashSetorCreateFieldsAsync(string key, ConcurrentDictionary<string, string> fields, TimeSpan timeSpan)
+    {
+        if(!await KeyExistsAsync(key))
+            await HashSetAsync(key, fields);
+        else
+        {
+            if (fields == null || fields.IsEmpty)
+                return;
+
+            var hs = await HashGetAsync(key);
+            foreach (var field in fields)
+            {
+                /*if (!hs.ContainsKey(field.Key))
+                    continue;*/
+
+                hs[field.Key] = field.Value;
+            }
+            await HashSetAsync(key, hs);
+            await _db.KeyExpireAsync(key, timeSpan);
+        }
+    }
+
+    public async Task<bool> HashFieldsExistsAsync(string key, IEnumerable<string> fields)
+    {
+        if(!await KeyExistsAsync(key))
+            return false;
+        var dic= await HashGetFieldsAsync(key, fields);
+        foreach (var field in fields)
+        {
+            if (dic[field]==null)
+            return false;
+        }
+        return true;
+    }
     public async Task<bool> HashDeleteAsync(string key) =>
         await KeyDeleteAsync(new string[] { key }) > 0;
 
@@ -151,7 +241,6 @@ public class RedisHelper:IRedisHelper
             if (!await _db.HashDeleteAsync(key, field))
                 success = false;
         }
-
         return success;
     }
 
@@ -172,10 +261,27 @@ public class RedisHelper:IRedisHelper
     public async Task<long> KeyDeleteAsync(IEnumerable<string> keys) =>
         await _db.KeyDeleteAsync(keys.Select(k => (RedisKey)k).ToArray());
 
+    public async Task<bool> KeyDeleteAsync(string key) =>
+        await _db.KeyDeleteAsync(key);
 
-    public async Task<bool> KeyExpireAsync(string key, TimeSpan? expiry) => await _db.KeyExpireAsync(key, expiry);
+    public  async Task<bool> DeleteAllKeyAsync()
+    {
+        var keys = GetAllKeys();
+        if (keys==null||! keys.Any())
+            return false;
+        foreach (var key in keys)
+        {
+            if(!await KeyDeleteAsync(key))
+                return false;
+        }
+        return true;
+    }
 
-    public async Task<bool> KeyExpireAsync(string key, DateTime? expiry) => await _db.KeyExpireAsync(key, expiry);
+    public async Task<bool> KeyExpireAsync(string key, TimeSpan? expiry) => 
+        await _db.KeyExpireAsync(key, expiry);
+
+    public async Task<bool> KeyExpireAsync(string key, DateTime? expiry) => 
+        await _db.KeyExpireAsync(key, expiry);
 
     #endregion
 
@@ -309,6 +415,7 @@ public class RedisHelper:IRedisHelper
 
         return _db.LockQuery(key) == value;
     }
+
 
     #endregion
 }

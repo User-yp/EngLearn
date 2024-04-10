@@ -18,20 +18,19 @@ public class RabbitMQEventBus : IEventBus, IDisposable
     private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScope serviceScope;
 
-    public RabbitMQEventBus(RabbitMQConnection persistentConnection,
-        IServiceScopeFactory serviceProviderFactory, string exchangeName, string queueName)
+    public RabbitMQEventBus(RabbitMQConnection persistentConnection,IServiceScopeFactory serviceProviderFactory, string exchangeName, string queueName)
     {
-        this._persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
-        this._subsManager = new SubscriptionsManager();
-        this._exchangeName = exchangeName;
-        this._queueName = queueName;
+        _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
+        _subsManager = new SubscriptionsManager();
+        _exchangeName = exchangeName;
+        _queueName = queueName;
 
         //因为RabbitMQEventBus是Singleton对象，而它创建的IIntegrationEventHandler以及用到的IIntegrationEventHandler用到的服务
         //大部分是Scoped，因此必须这样显式创建一个scope，否则在getservice的时候会报错：Cannot resolvefrom root provider because it requires scoped service
-        this.serviceScope = serviceProviderFactory.CreateScope();
-        this._serviceProvider = serviceScope.ServiceProvider;
-        this._consumerChannel = CreateConsumerChannel();
-        this._subsManager.OnEventRemoved += SubsManager_OnEventRemoved; ;
+        serviceScope = serviceProviderFactory.CreateScope();
+        _serviceProvider = serviceScope.ServiceProvider;
+        _consumerChannel = CreateConsumerChannel();
+        _subsManager.OnEventRemoved += SubsManager_OnEventRemoved; ;
     }
     /// <summary>
     /// 订阅移除的事件处理程序。
@@ -39,21 +38,15 @@ public class RabbitMQEventBus : IEventBus, IDisposable
     private void SubsManager_OnEventRemoved(object? sender, string eventName)
     {
         if (!_persistentConnection.IsConnected)
-        {
             _persistentConnection.TryConnect();
-        }
 
-        using (var channel = _persistentConnection.CreateModel())
+        using var channel = _persistentConnection.CreateModel();
+        channel.QueueUnbind(queue: _queueName, exchange: _exchangeName, routingKey: eventName);
+
+        if (_subsManager.IsEmpty)
         {
-            channel.QueueUnbind(queue: _queueName,
-                exchange: _exchangeName,
-                routingKey: eventName);
-
-            if (_subsManager.IsEmpty)
-            {
-                _queueName = string.Empty;
-                _consumerChannel.Close();
-            }
+            _queueName = string.Empty;
+            _consumerChannel.Close();
         }
     }
     /// <summary>
@@ -62,12 +55,10 @@ public class RabbitMQEventBus : IEventBus, IDisposable
     public void Dispose()
     {
         if (_consumerChannel != null)
-        {
             _consumerChannel.Dispose();
-        }
         _subsManager.Clear();
-        this._persistentConnection.Dispose();
-        this.serviceScope.Dispose();
+        _persistentConnection.Dispose();
+        serviceScope.Dispose();
     }
     /// <summary>
     /// 将事件发布到消息代理。
@@ -75,39 +66,22 @@ public class RabbitMQEventBus : IEventBus, IDisposable
     public void Publish(string eventName, object? eventData)
     {
         if (!_persistentConnection.IsConnected)
-        {
             _persistentConnection.TryConnect();
-        }
         //Channel 是建立在 Connection 上的虚拟连接
         //创建和销毁 TCP 连接的代价非常高，
         //Connection 可以创建多个 Channel ，Channel 不是线程安全的所以不能在线程间共享。
-        using (var channel = _persistentConnection.CreateModel())
-        {
-            channel.ExchangeDeclare(exchange: _exchangeName, type: "direct");
+        using var channel = _persistentConnection.CreateModel();
+        channel.ExchangeDeclare(exchange: _exchangeName, type: "direct");
 
-            byte[] body;
-            if (eventData == null)
-            {
-                body = [];
-            }
-            else
-            {
-                JsonSerializerOptions options = new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                };
-                body = JsonSerializer.SerializeToUtf8Bytes(eventData, eventData.GetType(), options);
-            }
-            var properties = channel.CreateBasicProperties();
-            properties.DeliveryMode = 2; // persistent
+        byte[] body;
+        if (eventData == null)
+            body = [];
+        else
+            body = JsonSerializer.SerializeToUtf8Bytes(eventData, eventData.GetType(), new JsonSerializerOptions() { WriteIndented = true });
+        var properties = channel.CreateBasicProperties();
+        properties.DeliveryMode = 2; // persistent
 
-            channel.BasicPublish(
-                exchange: _exchangeName,
-                routingKey: eventName,
-                mandatory: true,
-                basicProperties: properties,
-                body: body);
-        }
+        channel.BasicPublish(_exchangeName, routingKey: eventName, mandatory: true, basicProperties: properties, body: body);
     }
     /// <summary>
     /// 使用指定的处理程序类型订阅事件。
@@ -119,20 +93,14 @@ public class RabbitMQEventBus : IEventBus, IDisposable
         _subsManager.AddSubscription(eventName, handlerType);
         StartBasicConsume();
     }
+    
     /// <summary>
-    /// 开始用于接收消息的基本消费操作。
+    /// 检查提供的处理程序类型是否有效。
     /// </summary>
-    private void StartBasicConsume()
+    private void CheckHandlerType(Type handlerType)
     {
-        if (_consumerChannel != null)
-        {
-            var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
-            consumer.Received += Consumer_Received;
-            _consumerChannel.BasicConsume(
-                queue: _queueName,
-                autoAck: false,
-                consumer: consumer);
-        }
+        if (!typeof(IIntegrationEventHandler).IsAssignableFrom(handlerType))
+            throw new ArgumentException($"{handlerType} doesn't inherit from IIntegrationEventHandler", nameof(handlerType));
     }
     /// <summary>
     /// 处理订阅逻辑的内部方法。
@@ -143,22 +111,20 @@ public class RabbitMQEventBus : IEventBus, IDisposable
         if (!containsKey)
         {
             if (!_persistentConnection.IsConnected)
-            {
                 _persistentConnection.TryConnect();
-            }
-            _consumerChannel.QueueBind(queue: _queueName,
-                                exchange: _exchangeName,
-                                routingKey: eventName);
+            _consumerChannel.QueueBind(queue: _queueName,exchange: _exchangeName,routingKey: eventName);
         }
     }
     /// <summary>
-    /// 检查提供的处理程序类型是否有效。
+    /// 开始用于接收消息的基本消费操作。
     /// </summary>
-    private void CheckHandlerType(Type handlerType)
+    private void StartBasicConsume()
     {
-        if (!typeof(IIntegrationEventHandler).IsAssignableFrom(handlerType))
+        if (_consumerChannel != null)
         {
-            throw new ArgumentException($"{handlerType} doesn't inherit from IIntegrationEventHandler", nameof(handlerType));
+            var consumer = new AsyncEventingBasicConsumer(_consumerChannel);
+            consumer.Received += Consumer_Received;
+            _consumerChannel.BasicConsume(queue: _queueName, autoAck: false, consumer: consumer);
         }
     }
     /// <summary>
@@ -198,19 +164,12 @@ public class RabbitMQEventBus : IEventBus, IDisposable
     private IModel CreateConsumerChannel()
     {
         if (!_persistentConnection.IsConnected)
-        {
             _persistentConnection.TryConnect();
-        }
 
         var channel = _persistentConnection.CreateModel();
-        channel.ExchangeDeclare(exchange: _exchangeName,
-                                type: "direct");
+        channel.ExchangeDeclare(exchange: _exchangeName,type: "direct");
 
-        channel.QueueDeclare(queue: _queueName,
-                             durable: true,
-                             exclusive: false,
-                             autoDelete: false,
-                             arguments: null);
+        channel.QueueDeclare(queue: _queueName,durable: true,exclusive: false,autoDelete: false,arguments: null);
 
         channel.CallbackException += (sender, ea) =>
         {
@@ -220,7 +179,6 @@ public class RabbitMQEventBus : IEventBus, IDisposable
             StartBasicConsume();*/
             Debug.Fail(ea.ToString());
         };
-
         return channel;
     }
     /// <summary>
@@ -236,11 +194,8 @@ public class RabbitMQEventBus : IEventBus, IDisposable
                 //各自在不同的Scope中，避免DbContext等的共享造成如下问题：
                 //The instance of entity type cannot be tracked because another instance
                 using var scope = this._serviceProvider.CreateScope();
-                IIntegrationEventHandler? handler = scope.ServiceProvider.GetService(subscription) as IIntegrationEventHandler;
-                if (handler == null)
-                {
-                    throw new ApplicationException($"无法创建{subscription}类型的服务");
-                }
+                IIntegrationEventHandler? handler = scope.ServiceProvider.GetService(subscription) as IIntegrationEventHandler 
+                    ?? throw new ApplicationException($"无法创建{subscription}类型的服务");
                 await handler.Handle(eventName, message);
             }
         }

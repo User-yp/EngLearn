@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ASPNETCore;
+namespace ASPNETCore.RedisService;
 
 public class RedisHelperOptions
 {

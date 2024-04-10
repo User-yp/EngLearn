@@ -48,20 +48,14 @@ public static class ServicesCollectionExtensions
             //如果注册服务的时候就要读取配置，那么可以用AddSingleton的Func<IServiceProvider, TService> 这个重载，
             //因为可以拿到IServiceProvider，省得自己构建IServiceProvider
             var optionMQ = sp.GetRequiredService<IOptions<IntegrationEventRabbitMQOptions>>().Value;
-            var factory = new ConnectionFactory()
-            {
-                HostName = optionMQ.HostName,
+            var factory = new ConnectionFactory() { HostName = optionMQ.HostName, DispatchConsumersAsync = true };
 
-                DispatchConsumersAsync = true
-            };
             if (optionMQ.UserName != null)
-            {
                 factory.UserName = optionMQ.UserName;
-            }
+
             if (optionMQ.Password != null)
-            {
                 factory.Password = optionMQ.Password;
-            }
+
             //eventBus归DI管理，释放的时候会调用Dispose
             //eventbus的Dispose中会销毁RabbitMQConnection
             RabbitMQConnection mqConnection = new RabbitMQConnection(factory);

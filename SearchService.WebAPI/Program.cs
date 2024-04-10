@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.ConfigureDbConfiguration();
 builder.ConfigureExtraServices(new InitializerOptions
 {
-    LogFilePath = "e:/temp/SearchService.log",
+    LogFilePath = "e:/EngLearn.Log/SearchService.log",
     EventBusQueueName = "SearchService.WebAPI"
 });
 // Add services to the container.
