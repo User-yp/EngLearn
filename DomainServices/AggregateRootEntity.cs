@@ -9,12 +9,12 @@ public record AggregateRootEntity : BaseEntity, IAggregateRoot, ISoftDelete, IHa
 
     public virtual void SoftDelete()
     {
-        this.IsDeleted = true;
-        this.DeletionTime = DateTime.Now;
+        IsDeleted = true;
+        DeletionTime = DateTime.Now;
     }
 
     public void NotifyModified()
     {
-        this.LastModificationTime = DateTime.Now;
+        LastModificationTime = DateTime.Now;
     }
 }

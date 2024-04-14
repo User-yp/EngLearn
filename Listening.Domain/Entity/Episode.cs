@@ -103,7 +103,7 @@ public record Episode : AggregateRootEntity, IAggregateRoot
     public override void SoftDelete()
     {
         base.SoftDelete();
-        this.AddDomainEvent(new EpisodeDeletedEvent(this.Id));
+        AddDomainEvent(new EpisodeDeletedEvent(this.Id));
     }
 
     public IEnumerable<Sentence> ParseSubtitle()

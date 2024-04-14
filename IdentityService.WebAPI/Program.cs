@@ -4,6 +4,8 @@ using IdentityService.Domain;
 using IdentityService.Infrastructure.Services;
 using IdentityService.Infrastructure;
 using Microsoft.AspNetCore.Identity;
+using OfficeOpenXml;
+using IdentityService.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +16,11 @@ builder.ConfigureExtraServices(new InitializerOptions
     EventBusQueueName = "IdentityService.WebAPI",
     LogFilePath = "e:/EngLearn.Log/IdentityService.log"
 });
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.OperationFilter<OpenApiFileUploadFilter>();
     c.SwaggerDoc("v1", new() { Title = "IdentityService.WebAPI", Version = "v1" });
     //c.AddAuthenticationHeader();
 });

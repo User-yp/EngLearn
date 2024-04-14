@@ -7,9 +7,9 @@ namespace IdentityService.WebAPI.Events;
 [EventName("IdentityService.User.SmsCodeSignUp")]
 public class UserSmsCodeSignUpEventHandler : JsonIntegrationEventHandler<UserSmsCodeSignUpEvent>
 {
-    private readonly ILogger<ResetPasswordEventHandler> logger;
+    private readonly ILogger<UserSmsCodeSignUpEventHandler> logger;
 
-    public UserSmsCodeSignUpEventHandler(ILogger<ResetPasswordEventHandler> logger)
+    public UserSmsCodeSignUpEventHandler(ILogger<UserSmsCodeSignUpEventHandler> logger)
     {
         this.logger = logger;
     }
