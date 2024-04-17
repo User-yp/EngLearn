@@ -1,5 +1,4 @@
 ﻿using Domain;
-using Order.Domain.Event;
 
 namespace Order.Domain.Entities;
 
@@ -10,6 +9,10 @@ public record OrderTable: AggregateRootEntity, IAggregateRoot
 
     public List<Order> Orders { get;private set; }
 
+    public OrderTable()
+    {
+        Orders = [];
+    }
     public OrderTable(string tableName)
     {
         TableName = tableName;
@@ -34,6 +37,11 @@ public record OrderTable: AggregateRootEntity, IAggregateRoot
     public void AddOrder(Order order)
     {
         Orders.Add(order);
+        NotifyModified();
+    }
+    public void RemoveOrder(Order order)
+    {
+        Orders.Remove(order);
         NotifyModified();
     }
 }

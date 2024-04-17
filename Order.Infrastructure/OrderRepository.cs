@@ -31,7 +31,12 @@ public class OrderRepository : IOrderRepository
         return await dbContext.Orders.FirstOrDefaultAsync(o => o.Id == guid);
     }
 
-    public async Task<List<Domain.Entities.Order>?> GetOrdersBySearch(string search)
+    public async Task<Domain.Entities.Order?> GetOrderByProjectTextAsync(string ProjectText)
+    {
+        return await dbContext.Orders.FirstOrDefaultAsync(o => o.ProjectText == ProjectText);
+    }
+
+    public async Task<List<Domain.Entities.Order>?> GetOrdersBySearchAsync(string search)
     {
         return await dbContext.Orders.Where(o=>o.ProjectText.ToLower().Contains(search.ToLower()) 
         || o.ProjectText.StartsWith(search)

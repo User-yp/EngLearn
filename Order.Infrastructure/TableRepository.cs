@@ -13,6 +13,12 @@ public class TableRepository : ITableRepository
     {
         this.dbContext = dbContext;
     }
+    public async Task<bool> CreateTableAsync(string tableName)
+    {
+        await dbContext.OrderTables.AddAsync(new OrderTable(tableName));
+        await dbContext.SaveChangesAsync();
+        return true;
+    }
     public async Task<List<OrderTable>?> GetAllTablesAsync()
     {
         return await dbContext.OrderTables.ToListAsync();

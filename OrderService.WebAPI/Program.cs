@@ -15,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "OrderService.WebAPI", Version = "v1" });
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
     //c.AddAuthenticationHeader();
 });
 builder.Services.AddControllers();

@@ -1,5 +1,4 @@
 ﻿using Domain;
-using Order.Domain.Event;
 
 namespace Order.Domain.Entities;
 
@@ -54,7 +53,7 @@ public record Order : AggregateRootEntity, IAggregateRoot
     public override void SoftDelete()
     {
         base.SoftDelete();
-        AddDomainEvent(new OrderDeletedEvent(Id));
+        //AddDomainEvent(new OrderDeletedEvent(Id));
     }
     public void ChangeDeliveryTime(int deliveryTime)
     {
@@ -74,6 +73,11 @@ public record Order : AggregateRootEntity, IAggregateRoot
     public void DelayDeliveryDate(int days)
     {
         DeliveryDate.AddDays(days);
+        NotifyModified();
+    }
+    public void AddQuantity(int? quantity)
+    {
+        Quantity += quantity;
         NotifyModified();
     }
 }

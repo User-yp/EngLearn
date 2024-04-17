@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Nest;
 using SearchService.Domain;
+using SearchService.Infrastructure.Repository;
 
 namespace SearchService.Infrastructure;
 
@@ -17,6 +18,7 @@ internal class ModuleInitializer : IModuleInitializer
             var settings = new ConnectionSettings(option.Value.Url);
             return new ElasticClient(settings);
         });
-        services.AddScoped<ISearchRepository, SearchRepository>();
+        services.AddScoped<IEpisodeSearchRepository, EpisodeSearchRepository>();
+        services.AddScoped<IOrderSearchRepository, OrderSearchRepository>();
     }
 }

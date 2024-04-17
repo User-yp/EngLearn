@@ -1,13 +1,14 @@
 ﻿using Nest;
 using SearchService.Domain;
+using SearchService.Domain.Entities;
 
-namespace SearchService.Infrastructure;
+namespace SearchService.Infrastructure.Repository;
 
-public class SearchRepository : ISearchRepository
+public class EpisodeSearchRepository : IEpisodeSearchRepository
 {
     private readonly IElasticClient elasticClient;
 
-    public SearchRepository(IElasticClient elasticClient)
+    public EpisodeSearchRepository(IElasticClient elasticClient)
     {
         this.elasticClient = elasticClient;
     }
@@ -22,7 +23,7 @@ public class SearchRepository : ISearchRepository
         return elasticClient.DeleteAsync(new DeleteRequest("episodes", episodeId));
     }
 
-    public async Task<SearchEpisodesResponse> SearchEpisodes(string Keyword, int PageIndex, int PageSize)
+    public async Task<SearchResult<Episode>> SearchAsync(string Keyword, int PageIndex, int PageSize)
     {
         int from = PageSize * (PageIndex - 1);
         string kw = Keyword;
@@ -32,7 +33,7 @@ public class SearchRepository : ISearchRepository
                       || q.Match(mq => mq.Field(f => f.PlainSubtitle).Query(kw));
         Func<HighlightDescriptor<Episode>, IHighlight> highlightSelector = h => h
             .Fields(fs => fs.Field(f => f.PlainSubtitle));
-        var result = await this.elasticClient.SearchAsync<Episode>(s => s.Index("episodes").From(from)
+        var result = await elasticClient.SearchAsync<Episode>(s => s.Index("episodes").From(from)
             .Size(PageSize).Query(query).Highlight(highlightSelector));
         if (!result.IsValid)
         {
@@ -54,15 +55,38 @@ public class SearchRepository : ISearchRepository
             var episode = hit.Source with { PlainSubtitle = highlightedSubtitle };
             episodes.Add(episode);
         }
-        return new SearchEpisodesResponse(episodes, result.Total);
+        return new SearchResult<Episode>(episodes, result.Total);
+    }
+
+    public async Task UpdateAsync(Guid episodeId, Dictionary<string, string> updatedFields)
+    {
+        var existingOrder = await elasticClient.GetAsync<Episode>(episodeId, idx => idx.Index("episodes"));
+        if (existingOrder.Source != null)
+        {
+            foreach (var field in updatedFields)
+            {
+                existingOrder.Source.GetType().GetProperty(field.Key)?.SetValue(existingOrder.Source, field.Value);
+            }
+
+            var response = await elasticClient.IndexAsync(existingOrder.Source, idx => idx.Index("episodes").Id(episodeId));
+            if (!response.IsValid)
+            {
+                throw new ApplicationException(response.DebugInformation);
+            }
+        }
+        else
+        {
+            throw new ApplicationException("Order not found in Elasticsearch.");
+        }
     }
 
     public async Task UpsertAsync(Episode episode)
     {
-        var response = await elasticClient.IndexAsync(episode, idx => idx.Index("episodes").Id(episode.Id));//Upsert:Update or Insert
+        var response = await elasticClient.IndexAsync(episode, idx => idx.Index(nameof(Episode).ToLower()).Id(episode.Id));//Upsert:Update or Insert
         if (!response.IsValid)
         {
             throw new ApplicationException(response.DebugInformation);
         }
     }
+
 }

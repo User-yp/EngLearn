@@ -4,6 +4,7 @@ namespace Order.Domain;
 
 public interface ITableRepository
 {
+    Task<bool> CreateTableAsync(string tableName);
     Task<List<OrderTable>?> GetAllTablesAsync(); // 获取所有订单表
     Task<OrderTable?> GetTableByNameAsync(string tableName); // 根据表名获取订单表
     Task<OrderTable?> GetTableByIdAsync(Guid id); // 根据表Id获取订单表

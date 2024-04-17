@@ -1,6 +1,7 @@
 ﻿using EventBus;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.Domain;
+using SearchService.Domain.Entities;
 using SearchService.WebAPI.Request;
 
 namespace SearchService.WebAPI.Controllers;
@@ -10,19 +11,34 @@ namespace SearchService.WebAPI.Controllers;
 public class SearchController : ControllerBase
 {
 
-    private readonly ISearchRepository repository;
+    private readonly IEpisodeSearchRepository episodeSearch;
+    private readonly IOrderSearchRepository orderSearch;
     private readonly IEventBus eventBus;
 
-    public SearchController(ISearchRepository repository, IEventBus eventBus)
+    public SearchController(IEpisodeSearchRepository episodeSearch,IOrderSearchRepository orderSearch ,IEventBus eventBus)
     {
-        this.repository = repository;
+        this.episodeSearch = episodeSearch;
+        this.orderSearch = orderSearch;
         this.eventBus = eventBus;
     }
 
     [HttpGet]
-    public Task<SearchEpisodesResponse> SearchEpisodes([FromQuery] SearchEpisodesRequest req)
+    public Task<SearchResult<Episode>> SearchEpisodes([FromQuery] SearchEpisodesRequest req)
     {
-        return repository.SearchEpisodes(req.Keyword, req.PageIndex, req.PageSize);
+        return episodeSearch.SearchAsync(req.Keyword, req.PageIndex, req.PageSize);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> Test(Guid Id)
+    {
+        //eventBus.Publish("OrderTable.Created", new { TableId =  Guid.NewGuid() , OrderId = Guid.NewGuid(), TableName="jbvdfvn", ProjectText="dksjlnvjdsfnjd" });
+        eventBus.Publish("OrderService.Order.Update", new { OrderId= Id, ProjectText = "yepeng" });
+        return Ok();
+    }
+    [HttpGet]
+    public Task<SearchResult<Order>> SearchOrders([FromQuery] SearchOrdersRequest req)
+    {
+        return orderSearch.SearchAsync(req.Keyword, req.PageIndex, req.PageSize);
     }
 
     [HttpPut]

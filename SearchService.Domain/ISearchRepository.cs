@@ -1,8 +1,9 @@
 ﻿namespace SearchService.Domain;
 
-public interface ISearchRepository
+public  interface ISearchRepository<T>
 {
-    public Task UpsertAsync(Episode episode);
-    public Task DeleteAsync(Guid episodeId);
-    public Task<SearchEpisodesResponse> SearchEpisodes(string keyWord, int pageIndex, int PageSize);
+    Task UpsertAsync(T entity);
+    Task DeleteAsync(Guid id);
+    Task UpdateAsync(Guid Id, Dictionary<string, string> updatedFields);
+    Task<SearchResult<T>> SearchAsync(string keyWord, int pageIndex, int pageSize);
 }

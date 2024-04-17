@@ -1,15 +1,16 @@
 ﻿using EventBus;
 using SearchService.Domain;
+using SearchService.Domain.Entities;
 
 namespace SearchService.WebAPI.EventHandlers;
 
 [EventName("ListeningEpisode.Created")]
 [EventName("ListeningEpisode.Updated")]
-public class ListeningEpisodeUpsertEventHandler : DynamicIntegrationEventHandler
+public class EpisodeUpsertEventHandler : DynamicIntegrationEventHandler
 {
-    private readonly ISearchRepository repository;
+    private readonly IEpisodeSearchRepository repository;
 
-    public ListeningEpisodeUpsertEventHandler(ISearchRepository repository)
+    public EpisodeUpsertEventHandler(IEpisodeSearchRepository repository)
     {
         this.repository = repository;
     }

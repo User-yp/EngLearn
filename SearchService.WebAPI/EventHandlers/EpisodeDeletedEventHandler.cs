@@ -5,11 +5,11 @@ namespace SearchService.WebAPI.EventHandlers;
 
 [EventName("ListeningEpisode.Deleted")]
 [EventName("ListeningEpisode.Hidden")]//被隐藏也看作删除
-public class ListeningEpisodeDeletedEventHandler : DynamicIntegrationEventHandler
+public class EpisodeDeletedEventHandler : DynamicIntegrationEventHandler
 {
-    private readonly ISearchRepository repository;
+    private readonly IEpisodeSearchRepository repository;
 
-    public ListeningEpisodeDeletedEventHandler(ISearchRepository repository)
+    public EpisodeDeletedEventHandler(IEpisodeSearchRepository repository)
     {
         this.repository = repository;
     }

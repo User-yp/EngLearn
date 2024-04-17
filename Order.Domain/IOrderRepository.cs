@@ -12,7 +12,8 @@ public interface IOrderRepository
 
     Task<List<Order>?> GetAllOrdersAsync(); // 获取所有订单
     Task<Order?> GetOrderByIdAsync(Guid guid);// 根据订单Id获取订单
-    Task<List<Order>?> GetOrdersBySearch(string search);//根据订单表Name获取所有订单
+    Task<Order?> GetOrderByProjectTextAsync(string ProjectText);// 根据订单Id获取订单
+    Task<List<Order>?> GetOrdersBySearchAsync(string search);//根据订单表Name获取所有订单
     Task<List<Order>?> GetByProductionOrderNumberAsync(string productionOrderNumber); //根据订单生产订单号获取订单
     Task<List<Order>?> GetByProjectCategoryAsync(string projectCategory);//根据订单项目类别获取订单
     Task<List<Order>?> GetByPurchaseGroupAsync(string purchaseGroup);//根据订单采购组获取订单

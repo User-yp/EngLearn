@@ -1,24 +1,20 @@
-﻿using ASPNETCore;
-using MediatR;
-using Order.Domain.Entities;
-using Order.Infrastructure;
+﻿using EventBus;
+using OrderService.WebAPI.EventHandlers;
 
 namespace Order.Domain.Event;
 
-public class OrderDeletedEventHandler : INotificationHandler<OrderDeletedEvent>
+[EventName("OrderService.Order.Deleted")]
+public class OrderDeletedEventHandler : JsonIntegrationEventHandler<OrderDeletedEvent>
 {
-    private readonly IOrderRepository repository;
-    private readonly ILogger<OrderDeletedEventHandler> logger;
+    private readonly IEventBus eventBus;
 
-    public OrderDeletedEventHandler(IOrderRepository repository, ILogger<OrderDeletedEventHandler> logger)
+    public OrderDeletedEventHandler(IEventBus eventBus)
     {
-        this.repository = repository;
-        this.logger = logger;
+        this.eventBus = eventBus;
     }
-    public async Task Handle(OrderDeletedEvent notification, CancellationToken cancellationToken)
+    public override Task HandleJson(string eventName, OrderDeletedEvent? eventData)
     {
-        var order = await repository.GetOrderByIdAsync(notification.Guid);
-        logger.LogInformation($"{nameof(OrderDeletedEventHandler)}-{order.Id}-{order.DeletionTime}");
-
+        eventBus.Publish("OrderTable.Deleted", new { eventData.Id});
+        return Task.CompletedTask;
     }
 }
