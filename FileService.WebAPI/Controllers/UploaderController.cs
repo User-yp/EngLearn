@@ -1,14 +1,13 @@
 ﻿using ASPNETCore;
 using FileService.Domain;
 using FileService.Infrastructure;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FileService.WebAPI.Controllers;
 
 [Route("[controller]/[action]")]
 [ApiController]
-[Authorize(Roles = "Admin")]
+//[Authorize(Roles = "Admin")]
 [UnitOfWork(typeof(FSDbContext))]
 //todo：要做权限控制，这个接口即对内部系统开放、又对前端用户开放。
 public class UploaderController : ControllerBase
@@ -33,13 +32,9 @@ public class UploaderController : ControllerBase
     {
         var item = await repository.FindFileAsync(fileSize, sha256Hash);
         if (item == null)
-        {
             return new FileExistsResponse(false, null);
-        }
         else
-        {
             return new FileExistsResponse(true, item.RemoteUrl);
-        }
     }
 
     //todo: 做好校验，参考OSS的接口，防止被滥用
@@ -56,5 +51,26 @@ public class UploaderController : ControllerBase
         var upItem = await domainService.UploadAsync(stream, fileName, cancellationToken);
         dbContext.Add(upItem);
         return upItem.RemoteUrl;
+    }
+    [HttpGet]
+    public async Task<ActionResult< List<GetFileResponse>>> GetAllFile()
+    {
+        (var ope,var res)  = await domainService.GetAllFileAsync();
+        if (!ope.Succeeded)
+            return BadRequest(ope.Errors);
+        List<GetFileResponse> resp = [];
+        foreach (var item in res)
+        {
+            resp.Add(new GetFileResponse(item.FileName, item.BackupUrl, item.RemoteUrl));
+        }
+        return Ok(resp);
+    }
+    [HttpGet]
+    public async Task<ActionResult<GetFileResponse>> DownloadFile(Guid Id)
+    {
+        (var ope, var res) = await domainService.FindFileByIdAsync(Id);
+        if (!ope.Succeeded)
+            return BadRequest(ope.Errors);
+        return new GetFileResponse(res.FileName, res.BackupUrl, res.RemoteUrl);
     }
 }

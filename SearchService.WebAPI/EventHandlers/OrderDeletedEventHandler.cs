@@ -15,6 +15,6 @@ public class OrderDeletedEventHandler : DynamicIntegrationEventHandler
     public override Task HandleDynamic(string eventName, dynamic eventData)
     {
         //Guid id = Guid.Parse(eventData.Id);
-        return repository.DeleteAsync((Guid)eventData.Id);
+        return repository.DeleteAsync((Guid)eventData.OrderId);
     }
 }

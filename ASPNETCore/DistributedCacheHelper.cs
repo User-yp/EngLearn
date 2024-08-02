@@ -32,8 +32,7 @@ public class DistributedCacheHelper : IDistributedCacheHelper
             var options = CreateOptions(expireSeconds);
             TResult? result = valueFactory(options);//如果数据源中也没有查到，可能会返回null
                                                     //null会被json序列化为字符串"null"，所以可以防范“缓存穿透”
-            string jsonOfResult = JsonSerializer.Serialize(result,
-                typeof(TResult));
+            string jsonOfResult = JsonSerializer.Serialize(result,typeof(TResult));
             distCache.SetString(cacheKey, jsonOfResult, options);
             return result;
         }
@@ -55,8 +54,7 @@ public class DistributedCacheHelper : IDistributedCacheHelper
         {
             var options = CreateOptions(expireSeconds);
             TResult? result = await valueFactory(options);
-            string jsonOfResult = JsonSerializer.Serialize(result,
-                typeof(TResult));
+            string jsonOfResult = JsonSerializer.Serialize(result,typeof(TResult));
             await distCache.SetStringAsync(cacheKey, jsonOfResult, options);
             return result;
         }

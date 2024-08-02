@@ -20,9 +20,11 @@ public class MemoryCacheHelper : IMemoryCacheHelper
             typeResult = typeResult.GetGenericTypeDefinition();
         }
         //注意用相等比较，不要用IsAssignableTo
-        if (typeResult == typeof(IEnumerable<>) || typeResult == typeof(IEnumerable)
+        if (typeResult == typeof(IEnumerable<>) 
+            || typeResult == typeof(IEnumerable)
             || typeResult == typeof(IAsyncEnumerable<TResult>)
-            || typeResult == typeof(IQueryable<TResult>) || typeResult == typeof(IQueryable))
+            || typeResult == typeof(IQueryable<TResult>) 
+            || typeResult == typeof(IQueryable))
         {
             throw new InvalidOperationException($"TResult of {typeResult} is not allowed, please use List<T> or T[] instead.");
         }

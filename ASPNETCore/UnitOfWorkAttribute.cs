@@ -8,7 +8,7 @@ public class UnitOfWorkAttribute : Attribute
     public Type[] DbContextTypes { get; init; }
     public UnitOfWorkAttribute(params Type[] dbContextTypes)
     {
-        this.DbContextTypes = dbContextTypes;
+        DbContextTypes = dbContextTypes;
         foreach (var type in dbContextTypes)
         {
             if (!typeof(DbContext).IsAssignableFrom(type))

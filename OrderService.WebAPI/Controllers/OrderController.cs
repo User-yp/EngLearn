@@ -40,12 +40,12 @@ public class OrderController:ControllerBase
         if (!operate.Succeeded)
             return BadRequest(operate.Errors);
         var table = await tableRepository.GetOrderBelongTableAsync(order);
-        GetOrderReponse res =await InitGetOrderReponse(table.Id, order.Id);
+        GetOrderReponse res =await InitGetOrderReponse(table, order);
         return Ok(res);
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<GetOrderReponse>>> GetAllOrders()
+    public async Task<ActionResult<List<GetOrderReponse>>> GetAllOrders(int pageSize, int pageNumber)
     {
         (var ope,var orders)=await domainService.GetAllOrdersAsync();
         if(!ope.Succeeded)
@@ -54,9 +54,9 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
-        return Ok(res);
+        return Ok(ReponsePagination(res,pageSize,pageNumber));
     }
 
     [HttpGet]
@@ -69,7 +69,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -84,7 +84,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -99,7 +99,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -114,7 +114,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -129,7 +129,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -144,7 +144,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -159,7 +159,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -174,7 +174,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -189,7 +189,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -204,7 +204,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -219,7 +219,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -234,7 +234,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -249,7 +249,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -288,14 +288,14 @@ public class OrderController:ControllerBase
     {
         var orderTable=await tableRepository.GetTableByIdAsync(tableId);
         var order=await oederRepository.GetOrderByIdAsync(orderId);
-        var res = await domainService.SetTableToOrdersAsync(orderTable, order);
-        if (!res.Succeeded)
-            return BadRequest(res.Errors);
+        (var ope, var res) = await domainService.SetTableToOrdersAsync(orderTable, order);
+        if (!ope.Succeeded)
+            return BadRequest(ope.Errors);
         return Ok(res);
     }
 
     [HttpPut]
-    public async Task<ActionResult> DelayOrderByIdAsync(Guid id, int days)
+    public async Task<ActionResult> DelayOrderByDaysAsync(Guid id, int days)
     {
         var res = await domainService.DelayOrderByIdAsync(id,days);
         if (!res.Succeeded)
@@ -304,7 +304,7 @@ public class OrderController:ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> DelayOrderByIdAsync(Guid id, DateTime dateTime)
+    public async Task<ActionResult> DelayOrderByTimeAsync(Guid id, DateTime dateTime)
     {
         var res = await domainService.DelayOrderByIdAsync(id, dateTime);
         if (!res.Succeeded)
@@ -322,7 +322,7 @@ public class OrderController:ControllerBase
         foreach (var order in orders)
         {
             var table = await tableRepository.GetOrderBelongTableAsync(order);
-            res.Add(await InitGetOrderReponse(table.Id, order.Id));
+            res.Add(await InitGetOrderReponse(table, order));
         }
         return Ok(res);
     }
@@ -332,18 +332,40 @@ public class OrderController:ControllerBase
     {
         var orderTable = await tableRepository.GetTableByIdAsync(tableId);
         var order = await oederRepository.GetOrderByIdAsync(orderId);
-        var res= await domainService.AddOrderQuantityAsync(orderTable, order);
-        if (!res.Succeeded)
-            return BadRequest(res.Errors);
-        return Ok(res);
+        (var ope, var res) = await domainService.AddOrderQuantityAsync(orderTable, order);
+        if (!ope.Succeeded)
+            return BadRequest(ope.Errors);
+        return Ok(ope);
     }
-
-    private async Task<GetOrderReponse> InitGetOrderReponse(Guid tableId, Guid orderId)
+    [HttpGet]
+    public async Task<ActionResult> PreloadedOrderAsync()
     {
-        var table = await tableRepository.GetTableByIdAsync(tableId);
-        var order = await oederRepository.GetOrderByIdAsync(orderId);
+        await domainService.PreloadedAsync();
+        return Ok();
+    }
+    [HttpGet]
+    public async Task<ActionResult> GetPreloadedOrderAsync()
+    {
+        var res= await redis.HashGetAsync(nameof(Order.Domain.Entities.Order));
+        List<Order.Domain.Entities.Order> orders = [];
+        foreach (var item in res)
+        {
+            orders.Add(item.Value.ParseJson<Order.Domain.Entities.Order>());
+        }
+        return Ok(orders);
+    }
+    private async Task<GetOrderReponse> InitGetOrderReponse(OrderTable table, Order.Domain.Entities.Order order)
+    {
+        if (table == null)
+            return new GetOrderReponse(null, order.ProductionOrderNumber, order.ItemNumber, order.ProjectText,
+            order.Quantity, order.Unit, order.ProjectCategory, order.Process, order.PurchaseGroup, order.ItemGroup, order.DeliveryTime,
+            order.DeliveryDate, order.ProcessTime, order.IsComplete, order.CreationTime, order.DeletionTime, order.LastModificationTime);
         return new GetOrderReponse(table.TableName, order.ProductionOrderNumber, order.ItemNumber, order.ProjectText,
             order.Quantity, order.Unit, order.ProjectCategory, order.Process, order.PurchaseGroup, order.ItemGroup, order.DeliveryTime,
             order.DeliveryDate, order.ProcessTime, order.IsComplete, order.CreationTime, order.DeletionTime, order.LastModificationTime);
+    }
+    private  List<GetOrderReponse> ReponsePagination(List<GetOrderReponse> orderReponses,int pageSize,int pageNumber)
+    {
+        return orderReponses.Skip((pageNumber-1)*pageSize).Take(pageSize).ToList();
     }
 }

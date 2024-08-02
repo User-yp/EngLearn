@@ -35,12 +35,12 @@ public class TableController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderTable>> GetTableById(GetTableByIdRequest req)
+    public async Task<ActionResult<GetTableResponse>> GetTableById(GetTableByIdRequest req)
     {
         var table=await tableRepository.GetTableByIdAsync(req.Id);
         if (table == null)
             return BadRequest("NoTable");
-        return Ok(table);
+        return Ok(new GetTableResponse(table.TableName, table.IsComplete, table.CreationTime, table.LastModificationTime));
     }
 
     [HttpGet]
@@ -122,7 +122,7 @@ public class TableController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> DelayAllOrderFromTableById(Guid Id,int Days)
+    public async Task<ActionResult> DelayAllOrderFromTableByDay(Guid Id,int Days)
     {
         var table = await tableRepository.GetTableByIdAsync(Id);
         var res= await domainService.DelayAllOrderFromTableAsync(table, Days);
@@ -132,7 +132,7 @@ public class TableController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> DelayAllOrderFromTableById(Guid Id, DateTime dateTime)
+    public async Task<ActionResult> DelayAllOrderFromTableByTime(Guid Id, DateTime dateTime)
     {
         var table = await tableRepository.GetTableByIdAsync(Id);
         var res = await domainService.DelayAllOrderFromTableAsync(table, dateTime);

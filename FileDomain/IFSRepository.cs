@@ -11,4 +11,8 @@ public interface IFSRepository
     /// <param name="sha256Hash"></param>
     /// <returns></returns>
     Task<UploadedItem?> FindFileAsync(long fileSize, string sha256Hash);
+    Task<List<UploadedItem>?> GetAllFileAsync();
+    Task<UploadedItem?> FindFileByHashAsync(string sha256Hash);
+    Task<UploadedItem?> FindFileByIdAsync(Guid Id);
+    Task<UploadedItem?> FindFileByNameAsync(string name);
 }

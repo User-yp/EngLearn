@@ -7,7 +7,6 @@ namespace System;
 
 public static class JsonExtentions
 {
-    //如果不设置这个，那么"雅思真题"就会保存为"\u96C5\u601D\u771F\u9898"
     public readonly static JavaScriptEncoder Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
 
     public static JsonSerializerOptions CreateJsonSerializerOptions(bool camelCase = false)
@@ -32,7 +31,7 @@ public static class JsonExtentions
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            return default(T);
+            return default;
         }
         var opt = CreateJsonSerializerOptions();
         return JsonSerializer.Deserialize<T>(value, opt);

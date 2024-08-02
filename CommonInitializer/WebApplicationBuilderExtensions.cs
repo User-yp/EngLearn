@@ -88,6 +88,7 @@ public static class WebApplicationBuilderExtensions
                     .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
         }
         );
+
         services.AddLogging(builder =>
         {
             Log.Logger = new LoggerConfiguration()
@@ -97,6 +98,7 @@ public static class WebApplicationBuilderExtensions
                .CreateLogger();
             builder.AddSerilog();
         });
+
         services.AddFluentValidation(fv =>
         {
             fv.RegisterValidatorsFromAssemblies(assemblies);
@@ -116,7 +118,6 @@ public static class WebApplicationBuilderExtensions
 
         services.AddRedisHelper(redisOption =>
         {
-            //redisOption.ConnectionString ="127.0.0.1:6379";
             redisOption.ConnectionString = configuration.GetValue<string>("Redis:ConnStr");
             redisOption.DbNumber = 0;
         });

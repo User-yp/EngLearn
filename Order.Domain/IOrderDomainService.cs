@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ASPNETCore.RedisService;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Concurrent;
 using OfficeOpenXml;
 using Order.Domain.Entities;
 using Order.Domain.Result;
@@ -6,12 +8,13 @@ using System.Globalization;
 
 namespace Order.Domain;
 
-public  class IOrderDomainService(IOrderRepository orderRepository, ITableRepository tableRepository)
+public  class IOrderDomainService(IOrderRepository orderRepository, ITableRepository tableRepository,IRedisHelper redis)
 {
     private readonly IOrderRepository orderRepository = orderRepository;
     private readonly ITableRepository tableRepository = tableRepository;
+    private readonly IRedisHelper redis = redis;
 
-    public async Task<(OperateResult, OrderTable?)> CreateTableAsync(string tableName)
+    /*public async Task<(OperateResult, OrderTable?)> CreateTableAsync(string tableName)
     {
         var orderTable = await tableRepository.GetTableByNameAsync(tableName);
         if (orderTable != null)
@@ -21,8 +24,8 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
             if (!await tableRepository.CreateTableAsync(tableName))
                 return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "TableExit" }), null);
             return (OperateResult.Success, new OrderTable(tableName));
-        }   
-    }
+        }
+    }*/
 
     public async Task<(OperateResult, List<OrderTable>?)> GetAllTableAsync()
     {
@@ -35,12 +38,23 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
 
     public async Task<OperateResult> DeletedTableAsync(OrderTable table)
     {
-        if (await tableRepository.GetTableByIdAsync(table.Id) == null)
+        if (table == null)
             return OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" });
         table.SoftDelete();
         return OperateResult.Success;
     }
-
+    public async Task<OperateResult> DeletedTableAndOrderAsync(OrderTable table)
+    {
+        if (table == null)
+            return OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" });
+        var orders = await orderRepository.GetOrdersByTableIdAsync(table.Id);
+        foreach (var order in orders)
+        {
+            order.SoftDelete();
+        }
+        table.SoftDelete();
+        return OperateResult.Success;
+    }
     public async Task<OperateResult> DeletedAllTableAsync()
     {
         var tables = await tableRepository.GetAllTablesAsync();
@@ -58,7 +72,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
 
     public async Task<OperateResult> ChangeTableNameAsync(OrderTable table,string name)
     {
-        if (await tableRepository.GetTableByIdAsync(table.Id) == null)
+        if (table == null)
             return OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" });
         table.ChangeTableName(name);
         return OperateResult.Success;
@@ -67,7 +81,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     //Todo:
     public async Task<(OperateResult,bool)> SetTableCompleteAsync(OrderTable table)
     {
-        if (await tableRepository.GetTableByIdAsync(table.Id) == null)
+        if (table == null)
             return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" }),false);
         var orders= await orderRepository.GetAllNoClosedOrderBytableIdAsync(table.Id);
         if (orders.Count != 0)
@@ -92,7 +106,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
 
     public async Task<OperateResult> DelayAllOrderFromTableAsync(OrderTable table,int days)
     {
-        if (await tableRepository.GetTableByIdAsync(table.Id) == null)
+        if (table == null)
             return OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" });
         var orders = await orderRepository.GetAllNoClosedOrderBytableIdAsync(table.Id);
         if (orders == null)
@@ -106,7 +120,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
 
     public async Task<OperateResult> DelayAllOrderFromTableAsync(OrderTable table,DateTime dateTime)
     {
-        if (await tableRepository.GetTableByIdAsync(table.Id) == null)
+        if (table == null)
             return OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" });
         var orders = await orderRepository.GetAllNoClosedOrderBytableIdAsync(table.Id);
         if (orders == null)
@@ -128,6 +142,12 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         return (OperateResult.Success, tables);
     }
 
+    public async Task<(OperateResult,OrderTable)> InitTable(string TableName)
+    {
+        var newTable = await tableRepository.CreateTableAsync(TableName);
+        return (OperateResult.Success, newTable);
+    }
+
     //订单操作
     public async Task<(OperateResult,Entities.Order?)> GetOrderByIdAsync(Guid guid)
     {
@@ -140,7 +160,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult,List<Entities.Order>?)> GetAllOrdersAsync()
     {
         var orders = await orderRepository.GetAllOrdersAsync();
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -148,7 +168,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult,List<Entities.Order>?)> GetOrderByProductionOrderNumberAsync(string productionOrderNumber)
     {
         var orders = await orderRepository.GetByProductionOrderNumberAsync(productionOrderNumber);
-        if (orders == null)
+        if (orders.Count()==0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -156,7 +176,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult, List<Entities.Order>?)> GetByProjectCategoryAsync(string projectCategory)
     {
         var orders = await orderRepository.GetByProjectCategoryAsync(projectCategory);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -164,7 +184,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult, List<Entities.Order>?)> GetByPurchaseGroupAsync(string purchaseGroup)
     {
         var orders = await orderRepository.GetByPurchaseGroupAsync(purchaseGroup);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -172,7 +192,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult,List<Entities.Order>?)> GetAllClosedOrderAsync()
     {
         var orders= await orderRepository.GetAllClosedOrderAsync();
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError{ Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -180,7 +200,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult, List<Entities.Order>?)> GetAllNoClosedOrderAsync()
     {
         var orders = await orderRepository.GetAllNoClosedOrderAsync();
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -188,7 +208,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult, List<Entities.Order>?)> GetAllDeleteOrdersAsync()
     {
         var orders = await orderRepository.GetAllDeleteOrdersAsync();
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -196,7 +216,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
     public async Task<(OperateResult, List<Entities.Order>?)> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
     {
         var orders = await orderRepository.GetOrdersByDateRangeAsync(startDate, endDate);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -207,7 +227,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         if (table == null)
             return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "NoTable" }),null);
         var orders = await orderRepository.GetAllNoClosedOrderBytableIdAsync(table.Id);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -218,7 +238,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         if (table == null)
             return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "NoTable" }), null);
         var orders = await orderRepository.GetAllClosedOrderBytableIdAsync(guid);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -229,7 +249,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         if (table == null)
             return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "NoTable" }), null);
         var orders = await orderRepository.GetAllNoClosedOrderBytableNameAsync(tableName);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -240,7 +260,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         if (table == null)
             return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "NoTable" }), null);
         var orders = await orderRepository.GetAllClosedOrderBytableNameAsync(tableName);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -251,7 +271,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         if (table == null)
             return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "NoTable" }), null);
         var orders = await orderRepository.GetOrdersByTableIdAsync(guid);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -262,7 +282,7 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         if (table == null)
             return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "NoTable" }), null);
         var orders = await orderRepository.GetOrdersByTableNameAsync(tableName);
-        if (orders == null)
+        if (orders.Count() == 0)
             return (OperateResult.Failed(new OperateError { Code = "InvalidOrder", Description = "NoOrder" }), null);
         return (OperateResult.Success, orders);
     }
@@ -310,30 +330,30 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         return OperateResult.Success;
     }
 
-    public async Task<OperateResult> SetTableToOrdersAsync(OrderTable orderTable,Entities.Order order)
+    public async Task<(OperateResult, Entities.Order? )> SetTableToOrdersAsync(OrderTable orderTable,Entities.Order order)
     {
-        var table=await tableRepository.GetTableByIdAsync(orderTable.Id);
-        if (table == null)
-            return OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" });
+        if (orderTable == null)
+            return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" }),null);
         else
         {
-            order.SetOrderTableId(table);
-            return OperateResult.Success;
+            order.SetOrderTableId(orderTable);
+            return (OperateResult.Success,order);
         }
     }
 
-    public async Task<OperateResult> SetTableToOrdersAsync(OrderTable orderTable,List< Entities.Order> orders)
+    public async Task<(OperateResult,List<Entities.Order>?)> SetTableToOrdersAsync(OrderTable orderTable,List< Entities.Order> orders)
     {
-        var table = await tableRepository.GetTableByIdAsync(orderTable.Id);
-        if (table == null)
-            return OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" });
+        if (orderTable == null)
+            return (OperateResult.Failed(new OperateError { Code = "InvalidTable", Description = "TableNotExit" }),null);
         else
         {
+            List<Entities.Order> res = [];
             foreach (var order in orders)
             {
-                order.SetOrderTableId(table);
+                order.SetOrderTableId(orderTable);
+                res.Add(order);
             }
-            return OperateResult.Success;
+            return (OperateResult.Success, res);
         }
     }
 
@@ -365,15 +385,23 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         return (OperateResult.Success,orders);
     }
     
-    public async Task<OperateResult> AddOrderQuantityAsync(OrderTable table, Entities.Order order)
+    public async Task<(OperateResult, Entities.Order?)> AddOrderQuantityAsync(OrderTable table, Entities.Order order)
     {
-        var exitTable=await tableRepository.GetTableByNameAsync(table.TableName);
-        if (exitTable != null)
+        if (table != null)
         {
-            var exitOrder=await orderRepository.GetOrderByProjectTextAsync(order.ProjectText);
-            exitOrder?.AddQuantity(order.Quantity);
+            List<Entities.Order> orders=await orderRepository.GetOrdersByTableIdAsync(table.Id);
+            if (orders.Count() != 0)
+            {
+                var addOrder= orders.Find(o => o.ProjectText == order.ProjectText);
+                if (addOrder != null)
+                {
+                    addOrder.AddQuantity(order.Quantity);
+                    addOrder.SetOrderTableId(table);
+                    return (OperateResult.Success, addOrder);
+                }
+            }
         }
-        return OperateResult.Success;
+        return (OperateResult.Failed(new OperateError {Code="InvalidTable", Description = "NoTable" }),null);    
     }
 
     public async Task<(OperateResult,List<Entities.Order>?)> InitOrdersAsync(IFormFile excelFile)
@@ -428,5 +456,85 @@ public  class IOrderDomainService(IOrderRepository orderRepository, ITableReposi
         return OperateResult.Success;
     }
 
-    
+    public async Task<(List<string>, List<string>)> TablePlagiarismChecke(List<Entities.Order>oldOders, List<Entities.Order> newOders)
+    {
+        HashSet<string> orderNameOld = new(oldOders.Select(o => o.ProjectText));
+        List<string> ordersWithSameName = [];
+        List<string> ordersWithUniqueName = [];
+        foreach (var order in newOders)
+        {
+            if (orderNameOld.Contains(order.ProjectText))
+                ordersWithSameName.Add(order.ProjectText);
+            else
+                ordersWithUniqueName.Add(order.ProjectText);
+        }
+        return (ordersWithSameName, ordersWithUniqueName);
+    }
+
+    public async Task<(OperateResult, List<Entities.Order>?)> TableMerge(OrderTable oldTable, OrderTable newTable)
+    {
+        var orders = await orderRepository.GetOrdersByTableIdAsync(oldTable.Id);
+        var newOrders = await orderRepository.GetOrdersByTableIdAsync(newTable.Id);
+        (var exitOrderName, var newOrderName) = await TablePlagiarismChecke(orders, newOrders);
+        List<Entities.Order> res = [];
+        foreach (var order in exitOrderName)
+        {
+            (var ope, var addres) = await AddOrderQuantityAsync(oldTable, newOrders.Find(o => o.ProjectText == order));
+            if (!ope.Succeeded)
+                return (OperateResult.Failed(new OperateError { Code = "MergeError", Description = "SetTableToOrderError" }), null);
+            res.Add(addres);
+        }
+        foreach (var order in newOrderName)
+        {
+            (var ope, var addres) = await SetTableToOrdersAsync(oldTable, newOrders.Find(o => o.ProjectText == order));
+            if (!ope.Succeeded)
+                return (OperateResult.Failed(new OperateError { Code = "MergeError", Description = "SetTableToOrderError" }), null);
+            res.Add(addres);
+        }
+        return (OperateResult.Success, res);
+    }
+
+    public async Task PreloadedAsync() 
+    {
+        List<Entities.Order>? orders = await orderRepository.GetAllOrdersAsync();
+        foreach (var order in orders)
+        {
+            await redis.HashSetorCreateFieldsAsync(nameof(Entities.Order), new ConcurrentDictionary<string, string>
+            {
+                [order.Id.ToString()] =order.ToJsonString()
+            },TimeSpan.FromSeconds(60));
+        }
+    }
+    /*public async Task<(OperateResult, List<Entities.Order>?)> TableMerge(OrderTable oldTable ,List< Entities.Order> newOrders)
+    {
+        var orders = await orderRepository.GetOrdersByTableIdAsync(oldTable.Id);
+
+        if (orders.Any())
+        {
+            (var exitOrders, var newOrders) = await TablePlagiarismChecke(orders, newOrders);
+            List<Entities.Order> res = [];
+            foreach (var order in exitOrders)
+            {
+                (var ope, var addres) = await AddOrderQuantityAsync(oldTable, newOrders.Find(o => o.ProjectText == order));
+                if(!ope.Succeeded)
+                    return (OperateResult.Failed(new OperateError { Code = "MergeError", Description = "SetTableToOrderError" }), null);
+                res.Add(addres);
+            }
+            foreach (var order in newOrders)
+            {
+                (var ope, var addres) = await SetTableToOrdersAsync(oldTable, newOrders.Find(o => o.ProjectText == order));
+                if (!ope.Succeeded)
+                    return (OperateResult.Failed(new OperateError { Code = "MergeError", Description = "SetTableToOrderError" }),null);
+                res.Add(addres);
+            }
+            return (OperateResult.Success, res);
+        }
+        else
+        {
+            (var ope,var res) = await SetTableToOrdersAsync(oldTable, newOrders);
+            if (!ope.Succeeded)
+                return (OperateResult.Failed(new OperateError { Code = "MergeError", Description = "SetTableToOrderError" }),null);
+            return (OperateResult.Success, res);
+        }
+    }*/
 }
